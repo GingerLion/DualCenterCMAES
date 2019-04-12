@@ -37,10 +37,10 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   postModel = model(state, :post)
   w = weights(preModel)
 
-  # bugged system models
-  preModel_bug = model_(state, :pre)
-  postModel_bug = model_(state, :post)
-  w_bug = weights(preModel_bug)
+  # shadowged system models
+  preModel_shadow = model_(state, :pre)
+  postModel_shadow = model_(state, :post)
+  w_shadow = weights(preModel_shadow)
 
   # main system state
   parents   = population(state, :parents)
@@ -49,12 +49,12 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   state_center = centerpopn(preModel, f)
   covMatrix = covar(postModel)
 
-  # bugged main system state
-  parents_bug = population_(state, :parents)
-  offspring_bug = population_(state, :pre)
-  selected_bug = population_(state, :post)
-  state_center_bug = centerpopn(preModel_bug, f)
-  covMatrix_bug = covar(postModel_bug)
+  # shadowged main system state
+  parents_shadow = population_(state, :parents)
+  offspring_shadow = population_(state, :pre)
+  selected_shadow = population_(state, :post)
+  state_center_shadow = centerpopn(preModel_shadow, f)
+  covMatrix_shadow = covar(postModel_shadow)
 
   # general information
   runInfo[:best]    	= best(state)
@@ -64,13 +64,13 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   runInfo[:gen]			= gen(state)
   runInfo[:l_evals] 	= evals(state)
 
-  # general information - bugged
-  runInfo[:best_bug] 	= best_(state)
-  runInfo[:covar_bug]   = covar_(state)
-  runInfo[:cond_bug]	= cond(covMatrix_bug)
-  runInfo[:σ_bug]		= sigma_(state)
-  runInfo[:gen_bug]		= gen_(state)
-  runInfo[:l_evals_bug]   = evals_(state)
+  # general information - shadowged
+  runInfo[:best_shadow] 	= best_(state)
+  runInfo[:covar_shadow]   = covar_(state)
+  runInfo[:cond_shadow]	= cond(covMatrix_shadow)
+  runInfo[:σ_shadow]		= sigma_(state)
+  runInfo[:gen_shadow]		= gen_(state)
+  runInfo[:l_evals_shadow]   = evals_(state)
 
   # system state information
   runInfo[:center]  	= (state_center[:chr, 1], state_center[:fit, 1])
@@ -79,10 +79,10 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   runInfo[:source] = deepcopy(src)
   #online update of model parms
   #update!(src, postModel, system(state))
-  # system state information - bugged
+  # system state information - shadowged
   runInfo[:best_fit] = bestfitness(state)
-  runInfo[:best_bug_fit] = bestfitness_(state)
-  runInfo[:center_bug]  = (state_center_bug[:chr, 1], state_center_bug[:fit, 1])
+  runInfo[:best_shadow_fit] = bestfitness_(state)
+  runInfo[:center_shadow]  = (state_center_shadow[:chr, 1], state_center_shadow[:fit, 1])
   #   Mirroring state
   #   note: currently does not include mirror of covar, signma or paths,
   #		    i.e. only center is mirrored from the model
@@ -92,7 +92,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   (offspring_selected, offs_sortOrder) = truncation(offspring, mu(state))
   offspring_center = center(offspring_selected, w)
   runInfo[:center_fit] = state_center[:fit,1]
-  runInfo[:center_fit_bug] = state_center_bug[:fit,1]
+  runInfo[:center_fit_shadow] = state_center_shadow[:fit,1]
 
   runInfo[:offspring_center] = (offspring_center, objfn(f)(offspring_center))
   runInfo[:offs_fitsummary]	 = fitsummary(offspring_selected,runInfo,  w)
@@ -107,7 +107,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
 
   #eigenvalue & eigenvector study
   if !eigenerror(state)
-	  #NON-BUGGED
+	  #NON-shadowGED
 	  eigvals = eigendecomp(postModel)[1]
 	  eigvecs = eigendecomp(postModel)[2]
 	  #runInfo[:Dinv] = diag(inv(diagm(0 => eigvals)),0)
@@ -116,30 +116,30 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
 	  runInfo[:BD] = *(eigvecs,eigvals)
 	  runInfo[:eig_min] = minimum(eigvals)
 	  runInfo[:eig_max] = maximum(eigvals)
-	  #BUGGED
-	  eigvals_bug = eigendecomp(postModel_bug)[1]
-	  eigvecs_bug = eigendecomp(postModel_bug)[2]
-	  #runInfo[:Dinv_bug] = diag(inv(diagm(0 => eigvals_bug)),0)
-	  runInfo[:eig_vals_bug] = eigvals_bug
-	  runInfo[:eig_vecs_bug] = eigvecs_bug
-	  runInfo[:BD_bug] = *(eigvecs_bug,eigvals_bug)
-	  runInfo[:eig_min_bug] = minimum(eigvals_bug)
-	  runInfo[:eig_max_bug] = maximum(eigvals_bug)
+	  #shadowGED
+	  eigvals_shadow = eigendecomp(postModel_shadow)[1]
+	  eigvecs_shadow = eigendecomp(postModel_shadow)[2]
+	  #runInfo[:Dinv_shadow] = diag(inv(diagm(0 => eigvals_shadow)),0)
+	  runInfo[:eig_vals_shadow] = eigvals_shadow
+	  runInfo[:eig_vecs_shadow] = eigvecs_shadow
+	  runInfo[:BD_shadow] = *(eigvecs_shadow,eigvals_shadow)
+	  runInfo[:eig_min_shadow] = minimum(eigvals_shadow)
+	  runInfo[:eig_max_shadow] = maximum(eigvals_shadow)
   else
-	  #NON-BUGGED
+	  #NON-shadowGED
 	  runInfo[:eig_vals] = fill(NaN,chrlength(postModel))
 	  runInfo[:eig_vecs] = fill(NaN,(chrlength(postModel),chrlength(postModel)))
 	  #runInfo[:Dinv] = fill(NaN,chrlength(postModel))
 	  runInfo[:BD] = fill(NaN,(chrlength(postModel)))
 	  runInfo[:eig_min] = NaN
 	  runInfo[:eig_max] = NaN
-	  #BUGGED
-	  runInfo[:eig_vals_bug] = fill(NaN,chrlength(postModel_bug))
-	  runInfo[:eig_vecs_bug] = fill(NaN,(chrlength(postModel_bug),chrlength(postModel_bug)))
+	  #shadowGED
+	  runInfo[:eig_vals_shadow] = fill(NaN,chrlength(postModel_shadow))
+	  runInfo[:eig_vecs_shadow] = fill(NaN,(chrlength(postModel_shadow),chrlength(postModel_shadow)))
 	  #runInfo[:Dinv] = fill(NaN,chrlength(postModel))
-	  runInfo[:BD_bug] = fill(NaN,(chrlength(postModel_bug)))
-	  runInfo[:eig_min_bug] = NaN
-	  runInfo[:eig_max_bug] = NaN
+	  runInfo[:BD_shadow] = fill(NaN,(chrlength(postModel_shadow)))
+	  runInfo[:eig_min_shadow] = NaN
+	  runInfo[:eig_max_shadow] = NaN
 
   end
 
@@ -152,7 +152,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
 	runInfo[:c_σ] = c_σ(postModel)
 	runInfo[:c_μ] = c_μ(postModel)
 	runInfo[:c_c] = c_c(postModel)
-	#bugged model parms
+	#shadowged model parms
 	#not going to bother
 
 	#paths
@@ -180,11 +180,11 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
 	runInfo[:C_part2] = C_part2(postModel)
 	runInfo[:C_part3] = C_part3(postModel,state.sW)
 
-	#paths - bugged
-	runInfo[:p_σ_bug] = p_σ(postModel_bug)
-	runInfo[:p_c_bug] = p_c(postModel_bug)
-	runInfo[:y_bug] = weightedavg(state.sW_bug)
-	runInfo[:invsqrtC_bug] = invsqrtC(postModel_bug)
+	#paths - shadowged
+	runInfo[:p_σ_shadow] = p_σ(postModel_shadow)
+	runInfo[:p_c_shadow] = p_c(postModel_shadow)
+	runInfo[:y_shadow] = weightedavg(state.sW_shadow)
+	runInfo[:invsqrtC_shadow] = invsqrtC(postModel_shadow)
 	#update equations in parts
 	runInfo[:p_σ_part1] = p_σ_part1(postModel)
 	runInfo[:p_σ_part2] = p_σ_part2(postModel)
@@ -205,25 +205,25 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
 	runInfo[:C_part2] = C_part2(postModel)
 	runInfo[:C_part3] = C_part3(postModel,state.sW)
 
-	#update equations in parts - bugged
-	runInfo[:p_σ_part1_bug] = p_σ_part1(postModel_bug)
-	runInfo[:p_σ_part2_bug] = p_σ_part2(postModel_bug)
-	#runInfo[:p_σ_part3_bug] = p_σ_part3(postModel_bug,state.sW_bug)
+	#update equations in parts - shadowged
+	runInfo[:p_σ_part1_shadow] = p_σ_part1(postModel_shadow)
+	runInfo[:p_σ_part2_shadow] = p_σ_part2(postModel_shadow)
+	#runInfo[:p_σ_part3_shadow] = p_σ_part3(postModel_shadow,state.sW_shadow)
 
-	runInfo[:σ_part1_bug] = σ_part1(postModel_bug)
-	runInfo[:σ_part2_bug] = σ_part2(postModel_bug)
-	runInfo[:σ_part3_bug] = σ_part3(postModel_bug)
-	#runInfo[:σ_part4_bug] = σ_part4(postModel_bug)
-	#runInfo[:σ_part5_bug] = σ_part5(postModel_bug)
-	runInfo[:σ_part6_bug] = σ_part6(postModel_bug)
+	runInfo[:σ_part1_shadow] = σ_part1(postModel_shadow)
+	runInfo[:σ_part2_shadow] = σ_part2(postModel_shadow)
+	runInfo[:σ_part3_shadow] = σ_part3(postModel_shadow)
+	#runInfo[:σ_part4_shadow] = σ_part4(postModel_shadow)
+	#runInfo[:σ_part5_shadow] = σ_part5(postModel_shadow)
+	runInfo[:σ_part6_shadow] = σ_part6(postModel_shadow)
 
-	runInfo[:p_c_part1_bug] = p_c_part1(postModel_bug)
-	runInfo[:p_c_part2_bug] = p_c_part2(postModel_bug)
-	runInfo[:p_c_part3_bug] = p_c_part3(postModel_bug,state.sW_bug)
+	runInfo[:p_c_part1_shadow] = p_c_part1(postModel_shadow)
+	runInfo[:p_c_part2_shadow] = p_c_part2(postModel_shadow)
+	runInfo[:p_c_part3_shadow] = p_c_part3(postModel_shadow,state.sW_shadow)
 
-	runInfo[:C_part1_bug] = C_part1(postModel_bug)
-	runInfo[:C_part2_bug] = C_part2(postModel_bug)
-	runInfo[:C_part3_bug] = C_part3(postModel_bug,state.sW_bug)
+	runInfo[:C_part1_shadow] = C_part1(postModel_shadow)
+	runInfo[:C_part2_shadow] = C_part2(postModel_shadow)
+	runInfo[:C_part3_shadow] = C_part3(postModel_shadow,state.sW_shadow)
 end
 
 function monitor!(runInfo::RunInfo, state::CMAES_State, restart::RestartState, f::RealFitness)
@@ -231,7 +231,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, restart::RestartState, f
   runInfo[:g_evals] = evals(restart)
   runInfo[:restart]	= rep(restart)
   runInfo[:lambda]  = lambda(state)
-  #runInfo[:lambda_bug] = lambda_(state)
+  #runInfo[:lambda_shadow] = lambda_(state)
 end
 
 #-----------------------

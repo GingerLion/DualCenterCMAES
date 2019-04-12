@@ -46,4 +46,4 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 end
 
 expr_path = "$(base_path)/Experiments"
-runexpr("#shadow_on_weights", reps = 1, outputPath = expr_path, monitored = true)
+runexpr("#dual-center-shadowing", reps = 1, outputPath = expr_path, monitored = true)

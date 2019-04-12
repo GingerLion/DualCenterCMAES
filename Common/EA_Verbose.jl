@@ -20,29 +20,29 @@ atlevel(verbose::Verbose, level::Type) = (supertype(level) <: supertype(typeof(v
 function println(returnInfo::ReturnInfo)
 	state = returnInfo.state
 	(bestChr, bestFit) = best(state)
-	(bestChr_bug, bestFit_bug) = best_(state)
+	(bestChr_shadow, bestFit_shadow) = best_(state)
 	println("\n$(state.status): gen = $(gen(state)),  evals = $(evals(state))")
 	println("best: fit[$bestFit]")
-	println("best: bug_fit[$bestFit_bug]")
+	println("best: shadow_fit[$bestFit_shadow]")
 	println("best chr$bestChr")
-	println("best bug chr$bestChr_bug")
+	println("best shadow chr$bestChr_shadow")
 end
 
 function println(returnInfo::ReReturnInfo, restart::RestartState)
     state = finalstate(returnInfo)
     (bestChr, bestFit, bestRep) = returnInfo.best
-	(bestChr_bug, bestFit_bug) = returnInfo.best_bug
+	(bestChr_shadow, bestFit_shadow) = returnInfo.best_shadow
     currentRep = reps(returnInfo)
     println("\n$(state.status): after $(evals(restart)) evals, at gen = $(gen(state)) within rep = $(reps(returnInfo))")
     print("best: ")
     if currentRep == bestRep
     	println("fit[$bestFit]")
-		println("bug fit[$bestFit_bug]")
+		println("shadow fit[$bestFit_shadow]")
     else
     	println("found during rep = $bestRep")
     	println("      fit[$bestFit]")
-		println("  bug fit[$bestFit_bug]")
+		println("  shadow fit[$bestFit_shadow]")
     end
     println("      chr$bestChr")
-	println("  bug chr$bestChr_bug")
+	println("  shadow chr$bestChr_shadow")
 end

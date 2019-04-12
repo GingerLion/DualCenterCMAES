@@ -78,6 +78,10 @@ function center!(m::CMAES_Model, w)
     end
 end
 
+#update center_ with best solution from sorted shadow population
+center!_(state::CMAES_State,v::Vector{Float64}) = state.nModel_shadow.center_ = v
+
+
 function h_σ(p_σ, gen::Integer, parms::Model_Parms)
   (c_σ, chi_mean, n) = (parms.c_σ, parms.chi_mean, parms.N)
   if any(i -> isnan(i), p_σ)
@@ -214,6 +218,7 @@ end
 #-------------------------
 
 center(model::CMAES_Model) = model.center
+center_(model::CMAES_Model) = model.center_
 center(model::CMAES_Model, popnSize) =
           RegularPopulation(center(model), popnSize; direction = model.parms.direction)
 centermember(model::CMAES_Model, objfun::Function) =

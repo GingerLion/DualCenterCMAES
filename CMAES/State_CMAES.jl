@@ -2,56 +2,56 @@
 # mutable struct CMAES_State <: State  (default implementation as CMA_ES_State <: CMAES_State)
 #---------------------------------------------------------------------------------------------------------------------------------
 #   gen::Integer
-#	gen_bug::Integer		    #bug shadow
+#	gen_shadow::Integer		    #shadow shadow
 #   evalCount::Integer
-#	evalCount_bug::Integer		#bug shadow
+#	evalCount_shadow::Integer		#shadow shadow
 #   sys::CMAES_System           # constants used during the running of the system (includes reproduction and selection parameters)
 #   pModel::CMAES_Model         # model from previous gen, used at the beginning of reproduction step
-#   pModel_bug::CMAES_Model		# bugged model from previous gen
+#   pModel_shadow::CMAES_Model		# shadowged model from previous gen
 #   pOffspring::Population      # popnsize = μ    offspring from previous gen  (used for elitism)
-#	pOffspring_bug::Population		# popnsize = μ	  bugged offspring from previous gen (used for elitism)
-#   pE::SphericalNoise          # popnsize = μ    E from previous gen         (currenlty used for elitism) BUGGED doesnt matter nE is all same
+#	pOffspring_shadow::Population		# popnsize = μ	  shadowged offspring from previous gen (used for elitism)
+#   pE::SphericalNoise          # popnsize = μ    E from previous gen         (currenlty used for elitism) shadowGED doesnt matter nE is all same
 #   pW::ShapedNoise             # popnsize = μ    W from previous gen         (used for elitism)
-#	pW_bug::ShapedNoise         # popnsize = μ    bugged W from previous gen         (used for elitism)
+#	pW_shadow::ShapedNoise         # popnsize = μ    shadowged W from previous gen         (used for elitism)
 #   nE::SphericalNoise          # popnsize = λ    generated noise used to create samples
 #   nW::ShapedNoise             # popnsize = λ    shaped noise used to create samples
-#   nW_bug::ShapedNoise         # popnsize = λ    bugged shaped noise used to create samples
+#   nW_shadow::ShapedNoise         # popnsize = λ    shadowged shaped noise used to create samples
 #   nOffspring::Population      # popnsize = λ    samples used to create new model after selection
-#	nOffspring_bug::Population  # popnsize = λ    bugged samples used to create new model after selection
+#	nOffspring_shadow::Population  # popnsize = λ    shadowged samples used to create new model after selection
 #   sOffspring::Population      # popnsize = μ;   sorted and truncated (selection) changing sample distribution for model updating
-#	sOffspring_bug::Population      # popnsize = μ;   bugged sorted and truncated (selection) changing sample distribution for model updating
+#	sOffspring_shadow::Population      # popnsize = μ;   shadowged sorted and truncated (selection) changing sample distribution for model updating
 #   sW::ShapedNoise             # popnsize = μ;   sorted and truncated (selection) changing sample distribution for model updating
-#   sW_bug::ShapedNoise             # popnsize = μ;   bugged sorted and truncated (selection) changing sample distribution for model updating
+#   sW_shadow::ShapedNoise             # popnsize = μ;   shadowged sorted and truncated (selection) changing sample distribution for model updating
 #   nModel::CMAES_Model         # model after the reproductive step complete
-#	nModel_bug::CMAES_Model     # bugged model after the reproductive step complete
+#	nModel_shadow::CMAES_Model     # shadowged model after the reproductive step complete
 #   status::Symbol
-#	status_bug::Symbol			# bugged status
+#	status_shadow::Symbol			# shadowged status
 #   best::Tuple
-#	best_bug::Tuple				# bugged best chromosome
+#	best_shadow::Tuple				# shadowged best chromosome
 #---------------------------------------------------------------------------------------------------------------------------------
 
 function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::RealFitness)
 	(n, λ, μ, direction) = (sys.rParms.N, sys.sParms.λ, sys.sParms.μ, sys.sParms.direction)
 	state.nModel = model
-	state.nModel_bug = model
+	state.nModel_shadow = model
 	state.sys = sys
 	state.gen = 0
-	state.gen_bug = state.gen
+	state.gen_shadow = state.gen
 	state.evalCount = 0
-	state.evalCount_bug = 0
+	state.evalCount_shadow = 0
 	state.nE = ZeroNoise(SphericalNoise, n, λ)
 	state.nW = ZeroNoise(ShapedNoise, n, λ)
-	state.nW_bug = deepcopy(state.nW)
+	state.nW_shadow = deepcopy(state.nW)
 	state.sW = ZeroNoise(ShapedNoise, n, μ)
-	state.sW_bug = deepcopy(state.sW)
+	state.sW_shadow = deepcopy(state.sW)
 	state.pW = deepcopy(state.nW)
-	state.pW_bug = deepcopy(state.pW)
+	state.pW_shadow = deepcopy(state.pW)
 	state.sOffspring = SortedPopulation(RegularPopulation(center(model), μ, f.objFn; direction = direction))
-	state.sOffspring_bug = deepcopy(state.sOffspring)
+	state.sOffspring_shadow = deepcopy(state.sOffspring)
 	state.pOffspring = deepcopy(state.sOffspring)
-	state.pOffspring_bug = deepcopy(state.pOffspring)
+	state.pOffspring_shadow = deepcopy(state.pOffspring)
 	state.best = best(state.sOffspring)
-	state.best_bug = best(state.sOffspring_bug)
+	state.best_shadow = best(state.sOffspring_shadow)
 	evolvable!(state)
 	evolvable!_(state)
 end
@@ -94,17 +94,17 @@ initializing(c::CMAES_State) = (c.gen == 0)
 pW(c::CMAES_State) = c.pW
 sW(c::CMAES_State) = c.sW
 
-#General bugged Functions
-currentmodel_(c::CMAES_State) = c.nModel_bug
-#mu_(c::CMAES_State) = c.nModel_bug.parms.μ
-#lambda_(c::CMAES_State) = c.nModel_bug.parms.λ
-sigma_(c::CMAES_State) = c.nModel_bug.σ
-center_(c::CMAES_State) = c.nModel_bug.center
-covar_(c::CMAES_State) = c.nModel_bug.C
-initializing_(c::CMAES_State) = (c.gen_bug == 0)
-pW_(c::CMAES_State) = c.pW_bug
-sW_(c::CMAES_State) = c.sW_bug
-population_bug(c::CMAES_State) = c.sOffspring_bug
+#General shadowged Functions
+currentmodel_(c::CMAES_State) = c.nModel_shadow
+#mu_(c::CMAES_State) = c.nModel_shadow.parms.μ
+#lambda_(c::CMAES_State) = c.nModel_shadow.parms.λ
+sigma_(c::CMAES_State) = c.nModel_shadow.σ
+center_(c::CMAES_State) = c.nModel_shadow.center
+covar_(c::CMAES_State) = c.nModel_shadow.C
+initializing_(c::CMAES_State) = (c.gen_shadow == 0)
+pW_(c::CMAES_State) = c.pW_shadow
+sW_(c::CMAES_State) = c.sW_shadow
+population_shadow(c::CMAES_State) = c.sOffspring_shadow
 
 
 
@@ -124,14 +124,14 @@ function population(state::CMAES_State, selection::Symbol = :post)
   	error("selection choice should be either :pre, :post or :parents; instead it is $selection")
   end
 end
-#for bugged populations
+#for shadowged populations
 function population_(state::CMAES_State, selection::Symbol = :post)
   if selection == :pre
-  	state.nOffspring_bug
+  	state.nOffspring_shadow
   elseif selection == :post
-  	state.sOffspring_bug
+  	state.sOffspring_shadow
   elseif selection == :parents
-    state.pOffspring_bug
+    state.pOffspring_shadow
   else
   	error("selection choice should be either :pre, :post or :parents; instead it is $selection")
   end
@@ -146,12 +146,12 @@ function model(state::CMAES_State, selection::Symbol = :post)
     error("selection choice should be either :pre or :post; instead it is $selection")
   end
 end
-#for bugged models
+#for shadowged models
 function model_(state::CMAES_State, selection::Symbol = :post)
   if selection == :pre
-    state.pModel_bug
+    state.pModel_shadow
   elseif selection == :post
-    state.nModel_bug
+    state.nModel_shadow
   else
     error("selection choice should be either :pre or :post; instead it is $selection")
   end

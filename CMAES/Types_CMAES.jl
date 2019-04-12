@@ -41,6 +41,7 @@ struct ComplexEigError <: Exception end
 
 mutable struct CMAES_Model
   center::Vector{Float64}     # center of the model / population / multi-variate normal distribution
+  center_::Vector{Float64}    # center 2 of the model which always gets replaced with the best solution of the previous population
   C::Array{Float64, 2}        # covariance matrix
   B::Array{Float64, 2}        # normalized eigenvectors of C (a matrix)
   D::Diagonal{Float64}        # sq roots of the eigenvalues diagonalized (a matrix)
@@ -57,6 +58,7 @@ mutable struct CMAES_Model
     m = new()
     m.parms = parms
     m.center = center_init
+    m.center_ = deepcopy(center_init)
     m.C = Matrix(1.0I, N, N)
     m.p_c = zeros(N)
     m.p_σ = zeros(N)
@@ -173,32 +175,32 @@ end
 
 mutable struct CMAES_State <: State
    gen::Integer
-   gen_bug::Integer		    #bug shadow
+   gen_shadow::Integer		    #shadow shadow
    evalCount::Integer
-   evalCount_bug::Integer		#bug shadow
+   evalCount_shadow::Integer		#shadow shadow
    sys::CMAES_System           # constants used during the running of the system (includes reproduction and selection parameters)
    pModel::CMAES_Model         # model from previous gen, used at the beginning of reproduction step
-   pModel_bug::CMAES_Model		# bugged model from previous gen
+   pModel_shadow::CMAES_Model		# shadowged model from previous gen
    pOffspring::Population      # popnsize = μ    offspring from previous gen  (used for elitism)
-   pOffspring_bug::Population		# popnsize = μ	  bugged offspring from previous gen (used for elitism)
-   pE::SphericalNoise          # popnsize = μ    E from previous gen         (currenlty used for elitism) BUGGED doesnt matter nE is all same
+   pOffspring_shadow::Population		# popnsize = μ	  shadowged offspring from previous gen (used for elitism)
+   pE::SphericalNoise          # popnsize = μ    E from previous gen         (currenlty used for elitism) shadowGED doesnt matter nE is all same
    pW::ShapedNoise             # popnsize = μ    W from previous gen         (used for elitism)
-   pW_bug::ShapedNoise         # popnsize = μ    bugged W from previous gen         (used for elitism)
+   pW_shadow::ShapedNoise         # popnsize = μ    shadowged W from previous gen         (used for elitism)
    nE::SphericalNoise          # popnsize = λ    generated noise used to create samples
    nW::ShapedNoise             # popnsize = λ    shaped noise used to create samples
-   nW_bug::ShapedNoise         # popnsize = λ    bugged shaped noise used to create samples
+   nW_shadow::ShapedNoise         # popnsize = λ    shadowged shaped noise used to create samples
    nOffspring::Population      # popnsize = λ    samples used to create new model after selection
-   nOffspring_bug::Population  # popnsize = λ    bugged samples used to create new model after selection
+   nOffspring_shadow::Population  # popnsize = λ    shadowged samples used to create new model after selection
    sOffspring::Population      # popnsize = μ;   sorted and truncated (selection) changing sample distribution for model updating
-   sOffspring_bug::Population      # popnsize = μ;   bugged sorted and truncated (selection) changing sample distribution for model updating
+   sOffspring_shadow::Population      # popnsize = μ;   shadowged sorted and truncated (selection) changing sample distribution for model updating
    sW::ShapedNoise             # popnsize = μ;   sorted and truncated (selection) changing sample distribution for model updating
-   sW_bug::ShapedNoise             # popnsize = μ;   bugged sorted and truncated (selection) changing sample distribution for model updating
+   sW_shadow::ShapedNoise             # popnsize = μ;   shadowged sorted and truncated (selection) changing sample distribution for model updating
    nModel::CMAES_Model         # model after the reproductive step complete
-   nModel_bug::CMAES_Model     # bugged model after the reproductive step complete
+   nModel_shadow::CMAES_Model     # shadowged model after the reproductive step complete
    status::Symbol
-   status_bug::Symbol			# bugged status
-   best::Tuple                  # bugged best chromosome
-   best_bug::Tuple
+   status_shadow::Symbol			# shadowged status
+   best::Tuple                  # shadowged best chromosome
+   best_shadow::Tuple
 
   function CMAES_State(model::CMAES_Model, sys::CMAES_System, f::RealFitness, runInfo = NoMonitor(), verbose = false)
     state = new()

@@ -108,11 +108,11 @@ end
 
 function flatten!(n::Noise, w::Weights)
   n.flattened = true
-  if any(i -> isnan(i),n[:chr,:])
-    n.weightedAvg = fill(NaN,size(n[:chr,:],1))
-  else
-    n.weightedAvg = vec(mean(n[:chr, :], w, dims=2))
-  end
+  #if any(i -> isnan(i),n[:chr,:])
+    #println("found -Infs in noise")
+    #n.weightedAvg = fill(NaN,size(n[:chr,:],1))
+   n.weightedAvg = vec(mean(n[:chr, :], w, dims=2))
+  #end
 end
 
 function flatten(noise::Noise, w::Weights)
@@ -210,9 +210,9 @@ function ShapedNoise(sphere::SphericalNoise, model::CMAES_Model)
   shaped
 end
 # is σ_estimate accurate enough because it may have hardly changed from the previous generation?
-ShapedNoise(popn::Population, model::CMAES_Model; bug = false) = !bug ? ShapedNoise((members(popn) .- center(model)) / σ_estimate(model)) :
-                                                                        ShapedNoise((members(popn) .- center(model)) / σ_estimate(model))
-#ShapedNoise(popn::Population, model::CMAES_Model) = ShapedNoise(members(popn) .- center(model) / σ_estimate(model)) <-bug
+ShapedNoise(popn::Population, model::CMAES_Model; shadow = false)  = ((shadow) ? ShapedNoise((members(popn) .- center_(model)) / σ_estimate(model))
+                                                                            : ShapedNoise((members(popn) .- center(model)) / σ_estimate(model)))
+#ShapedNoise(popn::Population, model::CMAES_Model) = ShapedNoise(members(popn) .- center(model) / σ_estimate(model)) <-shadow
 
 
 # -------------------------------

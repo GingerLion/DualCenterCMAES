@@ -52,7 +52,7 @@ mutable struct SortedPopulation <: Population
   direction::Symbol
 end
 
-struct SortStructure      # used by other populations to match sort order of the SortedPopulation
+mutable struct SortStructure      # used by other populations to match sort order of the SortedPopulation
   fitness
   sortOrder::Vector       # sort for members [1:λ], used for reseting μ in a truncation where μ_new > μ_old
   index::Vector           # sort for members [1:μ], used for indexing into the members
@@ -92,7 +92,7 @@ mutable struct EA_ReReturnInfo <: ReReturnInfo
   state::List
   runInfo::Monitor
   best::Tuple         # three tuple (chr, fit, rep) where rep is the repitition/restart that found the best
-  best_bug::Tuple
+  best_shadow::Tuple
   popnSize::List      # list of (mu, lambda) pairs for CMAES
   localEvals::List
   totalEvals::List

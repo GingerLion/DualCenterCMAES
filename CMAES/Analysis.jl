@@ -64,7 +64,7 @@ function rav_analysis(fileName::String, fn::String, dim::Int64)
     rav_collection = fill(Float64,size(targDF))
 
     #remove "[]" brackets from the center & noise vectors which for some reason reads into the DataFrame as a String
-    for symbol in [:center, :center_bug, :y, :y_bug]
+    for symbol in [:center, :center_shadow, :y, :y_shadow]
         targDF[symbol] = map(x -> replace(x,"[" => ""), targDF[symbol])
         targDF[symbol] = map(x -> replace(x,"]" => ""), targDF[symbol])
         #remove ","'s from the arrays and convert them to Array{Array{Float64,1},1}
@@ -72,41 +72,41 @@ function rav_analysis(fileName::String, fn::String, dim::Int64)
     end
     #use dictionary to store the Arrays -since i have no idea how to convert Array{Array{Float64,1},1} to Array{Float64,2}
     ctr_storage = Dict{Int64,Array{Float64,1}}()
-    ctr_bug_storage = Dict{Int64,Array{Float64,1}}()
+    ctr_shadow_storage = Dict{Int64,Array{Float64,1}}()
     y_storage = Dict{Int64,Array{Float64,1}}()
-    y_bug_storage = Dict{Int64,Array{Float64,1}}()
+    y_shadow_storage = Dict{Int64,Array{Float64,1}}()
     for i = 1:size(targDF[:center],1)
         ctr_storage[i] = targDF[:center][i]
-        ctr_bug_storage[i] = targDF[:center_bug][i]
+        ctr_shadow_storage[i] = targDF[:center_shadow][i]
         y_storage[i] = targDF[:y][i]
-        y_bug_storage[i] = targDF[:y_bug][i]
+        y_shadow_storage[i] = targDF[:y_shadow][i]
     end
     #calculate ravs
     #declare Dict to hold ravs
     rav_storage = Dict{Int64,Array{Float64,1}}()
     rav_storage[1] = fill(NaN,size(targDF[:center],1))
-    rav_bug_storage = Dict{Int64,Array{Float64,1}}()
-    rav_bug_storage[1] = fill(NaN,size(targDF[:center],1))
+    rav_shadow_storage = Dict{Int64,Array{Float64,1}}()
+    rav_shadow_storage[1] = fill(NaN,size(targDF[:center],1))
     #arrays to hold norms of ravs
     norm_rav = fill(0.0,length(keys(ctr_storage)))
-    norm_rav_bug = fill(0.0,length(keys(ctr_bug_storage)))
+    norm_rav_shadow = fill(0.0,length(keys(ctr_shadow_storage)))
     #arrays to count the # of negative and positive values in each rav
     num_of_plus = zeros(length(keys(ctr_storage)))
     num_of_minus = zeros(length(keys(ctr_storage)))
-    num_of_plus_bug = zeros(length(keys(ctr_storage)))
-    num_of_minus_bug = zeros(length(keys(ctr_storage)))
+    num_of_plus_shadow = zeros(length(keys(ctr_storage)))
+    num_of_minus_shadow = zeros(length(keys(ctr_storage)))
 
     for i in 2:length(keys(ctr_storage))
         rav_storage[i] = (ctr_storage[i]) - (ctr_storage[i-1] + (targDF[:sigma][i-1] * y_storage[i-1]))
-        rav_bug_storage[i] = (ctr_bug_storage[i]) - (ctr_bug_storage[i-1] + (targDF[:sigma_bug][i-1] * y_bug_storage[i-1]))
+        rav_shadow_storage[i] = (ctr_shadow_storage[i]) - (ctr_shadow_storage[i-1] + (targDF[:sigma_shadow][i-1] * y_shadow_storage[i-1]))
         norm_rav[i] = norm(rav_storage[i])
-        norm_rav_bug[i] = norm(rav_bug_storage[i])
+        norm_rav_shadow[i] = norm(rav_shadow_storage[i])
     end
 
     for i in 1:length(keys(ctr_storage))
         for j in 1:dim
             rav_storage[i][j] < 0  ?   num_of_minus[i] += 1 :  num_of_plus[i] += 1
-            rav_bug_storage[i][j] < 0  ?   num_of_minus_bug[i] += 1 :  num_of_plus_bug[i] += 1
+            rav_shadow_storage[i][j] < 0  ?   num_of_minus_shadow[i] += 1 :  num_of_plus_shadow[i] += 1
         end
     end
 
@@ -114,23 +114,23 @@ function rav_analysis(fileName::String, fn::String, dim::Int64)
     open("$fn-rav_analysis.csv", "w") do f
         write(f, "fn,")
         write(f, "norm_rav,")
-        write(f, "norm_rav_bug,")
+        write(f, "norm_rav_shadow,")
         write(f, "num_plus,")
         write(f, "num_minus,")
-        write(f, "num_plus_bug,")
-        write(f, "num_minus_bug,")
+        write(f, "num_plus_shadow,")
+        write(f, "num_minus_shadow,")
         write(f, "RAV,")
-        write(f, "RAV_bug\n")
+        write(f, "RAV_shadow\n")
         for i = 1:length(keys(rav_storage))
             write(f, "$(fn),")
             write(f, "$(norm_rav[i]),")
-            write(f, "$(norm_rav_bug[i]),")
+            write(f, "$(norm_rav_shadow[i]),")
             write(f, "$(num_of_plus[i]),")
             write(f, "$(num_of_minus[i]),")
-            write(f, "$(num_of_plus_bug[i]),")
-            write(f, "$(num_of_minus_bug[i]),")
+            write(f, "$(num_of_plus_shadow[i]),")
+            write(f, "$(num_of_minus_shadow[i]),")
             write(f, "$(rav_storage[i]),")
-            write(f, "$(rav_bug_storage[i])\n")
+            write(f, "$(rav_shadow_storage[i])\n")
         end
     end
 end

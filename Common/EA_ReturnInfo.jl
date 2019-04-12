@@ -51,8 +51,8 @@ returnstate(ri::ReturnInfo) = ri.state
 
 function ReReturnInfo(state::State, runInfo::Monitor)
 	bestMember = best(state)
-    bestMember_bug = best_(state)
-    EA_ReReturnInfo(nil(), runInfo, (bestMember[1], bestMember[2], 1), (bestMember_bug[1], bestMember_bug[2], 1), nil(), nil(), nil(), nil())
+    bestMember_shadow = best_(state)
+    EA_ReReturnInfo(nil(), runInfo, (bestMember[1], bestMember[2], 1), (bestMember_shadow[1], bestMember_shadow[2], 1), nil(), nil(), nil(), nil())
 end
 
 #--------------------------------------
@@ -68,8 +68,8 @@ function update!(rinfo::ReReturnInfo, state::State, restart::RestartState)
   if better(state, rinfo.best)
     rinfo.best = (bestchromosome(state), bestfitness(state), rep(restart))
   end
-  if better(state, rinfo.best_bug)
-    rinfo.best_bug = (bestchromosome_(state), bestfitness_(state), rep(restart))
+  if better(state, rinfo.best_shadow)
+    rinfo.best_shadow = (bestchromosome_(state), bestfitness_(state), rep(restart))
   end
 end
 

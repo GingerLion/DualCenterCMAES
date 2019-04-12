@@ -100,7 +100,7 @@ function matchedinterleave_e(parents::Population, offspring::Population, segment
     (members[:,i], fitness[i]) = parents[:both, pOrder[p]]
     i += 1
     for j = 1:segmentSize[p]
-      (members[:,i], fitness[i]) = offspring[:chr, cOrder[c]]#bug?
+      (members[:,i], fitness[i]) = offspring[:chr, cOrder[c]]#shadow?
       i += 1; c += 1
     end
   end
