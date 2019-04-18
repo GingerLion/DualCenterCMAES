@@ -127,10 +127,13 @@ end
 
 abstract type SelectionSourceParms end
 
-struct SingleSourceParms <: SelectionSourceParms end
+struct SingleSourceParms <: SelectionSourceParms
+    sourceValues::Vector{Symbol}
+    selectionType::Type
+end
 
 struct MultiSourceParms <: SelectionSourceParms
-    sourceValues::Vector{Symbol}
+    sourceValues::Vector{Tuple{Symbol,Symbol}}
     selectionType::Type
 end
 
@@ -138,26 +141,32 @@ abstract type SelectionSource end
 
 
 mutable struct EliteSource <: SelectionSource
-  source::Vector{Symbol}
+  source::Vector{Tuple{Symbol,Symbol}}
   fitness::Vector
   rank::Vector{Float64}
 end
 
 mutable struct CenterSource <: SelectionSource
-  source::Vector{Symbol}
+  source::Vector{Tuple{Symbol,Symbol}}
   fitness::Vector
   rank::Vector{Float64}
 end
 
 mutable struct EliteCenterSource <: SelectionSource
-  source::Vector{Symbol}
+  source::Vector{Tuple{Symbol,Symbol}}
   fitness::Vector
   rank::Vector{Float64}
 end
 
+
+
 const TripleSource = EliteCenterSource
 DualSource = Union{CenterSource, EliteSource}
-struct SingleSource <: SelectionSource end
+struct SingleSource <: SelectionSource
+    source::Vector{Symbol}
+    fitness::Vector
+    rank::Vector{Float64}
+end
 
 
 #-------------------------

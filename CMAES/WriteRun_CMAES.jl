@@ -42,6 +42,13 @@ function write_run_header(fileName::String, returnInfo::ReReturnInfo, prefixName
     write(f, "sys_p$(sep)")
     write(f, "sys_c$(sep)")
     write(f, "sys_o$(sep)")
+
+    write(f, "sys_p_orig$(sep)")
+    write(f, "sys_p_best$(sep)")
+    write(f, "sys_c_orig$(sep)")
+    write(f, "sys_c_best$(sep)")
+    write(f, "sys_o_orig$(sep)")
+    write(f, "sys_o_best$(sep)")
     #write(f, "sys_pMaxRank$(sep)")
     #write(f, "sys_pAvgRank$(sep)")
     #write(f, "sys_pMinRank$(sep)")
@@ -235,6 +242,7 @@ end
 
 function write_sourcesummary(f::IO, source::SelectionSource, sep::String)
 	write_proportions(f, source, sep)
+    write_proportions_species(f, source, sep)
 	#write_rankmarginals(f, source, sep)
 	#write_fitmarginals(f, source, sep)
 end
@@ -244,6 +252,16 @@ function write_proportions(f::IO, source::SelectionSource, sep::String)
   write(f, "$parent$sep")
   write(f, "$center$sep")
   write(f, "$offspring$sep")
+end
+
+function write_proportions_species(f::IO, source::SelectionSource, sep::String)
+  (parent_orig, parent_best, center_orig, center_best, offspring_orig, offspring_best) = proportions_species(source)
+  write(f, "$parent_orig$sep")
+  write(f, "$parent_best$sep")
+  write(f, "$center_orig$sep")
+  write(f, "$center_best$sep")
+  write(f, "$offspring_orig$sep")
+  write(f, "$offspring_best$sep")
 end
 
 write_rankmarginals(f::IO, source::SelectionSource, sep::String) = write_sourcesummary(f, source, rankmarginals, sep)

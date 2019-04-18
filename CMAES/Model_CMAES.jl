@@ -223,6 +223,8 @@ center(model::CMAES_Model, popnSize) =
           RegularPopulation(center(model), popnSize; direction = model.parms.direction)
 centermember(model::CMAES_Model, objfun::Function) =
           Member(center(model), objfun)
+centermember_(model::CMAES_Model, objfun::Function) =
+          Member(center_(model), objfun)          
 σ_estimate(model::CMAES_Model) = model.σ
 sigma(model::CMAES_Model) = model.σ
 covar(model::CMAES_Model) = model.C

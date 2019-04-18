@@ -158,8 +158,8 @@ function model_(state::CMAES_State, selection::Symbol = :post)
 end
 
 
-sortorder(c::CMAES_State) = SortStructure(population(c, :post))
-sortstructure(c::CMAES_State) = SortStructure(population(c, :post))   # synonym to sortorder()
+sortorder(c::CMAES_State) = SortStructure(population_(c, :post)) # changed to population_ to view the shadow's selection source
+sortstructure(c::CMAES_State) = SortStructure(population_(c, :post))   # synonym to sortorder()
 
 negeigerr(state::CMAES_State) = (status(state) == :negativeEigenError)
 complexeigerr(state::CMAES_State) = (status(state) == :complexEigenError)

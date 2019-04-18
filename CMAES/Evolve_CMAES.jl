@@ -95,10 +95,10 @@ function evolvepopn!(state::CMAES_State, f::RealFitness)
   #(sOffspring_shadow, sW_shadow) = es_selection(state, model_shadow, f, nOffspring_shadow, nW_shadow, shadow = true)
 
   (sOffspring_shadow, sW_shadow) = es_selection(state, model_shadow, f, dualcenterpopn, dualcenternoise, shadow = true)
-
+  #w_1!(model)
   #w_1!(model_shadow)
   flatten!(sW, weights(model))
-  
+
   flatten!(sW_shadow, weights(model_shadow))
 
   nModel = update(model, sW, gen)
@@ -113,7 +113,7 @@ function evolvepopn!(state::CMAES_State, f::RealFitness)
 
   found!(state, f)          # will overwrite status if found, even if the zero eigenvalue error was previously set
   found!_(state,f)
-  if ((state.status != :found) & (state.status_shadow == :found))
+  if ((state.status != :found) && (state.status_shadow == :found))
       println("shadow finished first")
       status_(state)
   else
@@ -152,6 +152,7 @@ function es_selection(state, model, f, nOffspring, nW; shadow = false)
   addparents = elitism(sys)
   addcentr = includecenter(sys)
   center = addcentr ? centermember(model, objfn(f)) : :nil
+  center_ = addcentr ? centermember_(model,objfn(f)) : :nil
   #if any of the shadowged fitness goes from -Inf (to NaN) set status to found so both algorithms stop
   if any(i -> isnan(i), nOffspring[:chr,:])
       state.status = :found
@@ -162,9 +163,9 @@ function es_selection(state, model, f, nOffspring, nW; shadow = false)
   elseif shadow
       # when intializing, offspring == center & no parents or ν_population yet
       (initializing(state)    ? sel☾μ▴λ☽(nOffspring, nW, μ, shadow = true)                    :
-       addparents && addcentr ? sel☾μ✢λ✢1☽(state, nOffspring, nW, μ, center, shadow = true) :
+       addparents && addcentr ? sel☾μ✢λ✢1☽(state, nOffspring, nW, μ, center_, shadow = true) :
        addparents             ? sel☾μ✢λ☽(state, nOffspring, nW, μ, shadow = true)              :
-       addcentr               ? sel☾μ▴λ✢1☽(nOffspring, nW, μ, center)
+       addcentr               ? sel☾μ▴λ✢1☽(nOffspring, nW, μ, center_)
                               : sel☾μ▴λ☽(nOffspring, nW, μ))
   else
       # when intializing, offspring == center & no parents or ν_population yet
