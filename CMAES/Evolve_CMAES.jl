@@ -121,11 +121,10 @@ function evolvepopn!(state::CMAES_State, f::RealFitness)
 
   found!(state, f)          # will overwrite status if found, even if the zero eigenvalue error was previously set
   found!_(state,f)
-  if ((state.status != :found) && (state.status_shadow == :found))
-      println("shadow finished first")
-      status_(state)
-  else
-      status(state)             # returns the status
+  if status(state) == :found
+      status(state)
+  elseif status_(state) == :found
+      status_(state)             # returns the status
   end
 end
 
@@ -171,6 +170,7 @@ function es_selection(state, model, f, nOffspring, nW; shadow = false)
   center_ = addcentr ? centermember_(model,objfn(f)) : :nil
   #if any of the shadowged fitness goes from -Inf (to NaN) set status to found so both algorithms stop
   if any(i -> isnan(i), nOffspring[:chr,:])
+      println("found NaNs in nOffspring")
       state.status = :found
       state.status_shadow = :found
       sOffspring = RegularPopulation(fill(NaN,(μ,size(nW[:chr,:],1))))
