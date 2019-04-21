@@ -25,6 +25,7 @@ function SelectionSourceParms(elitism::Bool, includeCenter::Bool, μ::Int, λ::I
 end
 
 function SingleSourceParms(λ::Int)
+    #order of vcat is very important
     o_orig = fill(:orig, λ)
     o_best = fill(:best, λ)
     SingleSourceParms(vcat(o_orig,o_best), SingleSource)

@@ -18,7 +18,7 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 		for name in fn_name
 			f = testFn[name]
 			r_UnitShell = rand_shell(optimum(f))
-			for includeCenter = [false, true], elitism = [false]
+			for includeCenter = [false], elitism = [false]
 				sys = CMAES_System(n, f; maxEvals = 1_000_000, includeCenter = includeCenter, elitism = elitism)
 				rsys = CMAES_Restart(; η = 2.0)
 				deg = 5.0

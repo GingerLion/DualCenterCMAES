@@ -95,7 +95,8 @@ function found!_(state::State, fit::Fitness)
 		println("Shadow found solution first!")
  		found_(state)
  	elseif found_(state, fit)
- 		state.status = :found
+		println("Shadow found solution first!")
 		state.status_shadow = :found
+		#state.status = :found
 	end
 end

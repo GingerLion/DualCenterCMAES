@@ -211,24 +211,25 @@ function ShapedNoise(sphere::SphericalNoise, model::CMAES_Model; dualcenter = fa
         return shaped
     else
         extra_sphere = SphericalNoise(N(model), lambda(model)) # λ
-        sphere = sphere + extra_sphere # λ + λ = 2λ
+        sphere_2 = deepcopy(sphere) + extra_sphere # λ + λ = 2λ
 
         shaped = ShapedNoise(sphere) # λ
         shaped_2 = deepcopy(shaped) + deepcopy(shaped) # 2λ
-
+        #println("μ = $(mu(model)), λ = $(lambda(model))")
         size = popnsize(shaped) # λ
         size_2 = popnsize(shaped_2) # 2λ
-        println("size = $(size)")
+        #println("size = $(size)")
+        #println("size_2 = $(size_2)")
         orig_λ = round(Int64, orig_scale(model) * size)
         best_λ = size_2 - orig_λ  #leftover lambda
         shaped_orig_container = deepcopy(shaped)
         shaped_best_container = deepcopy(shaped)
 
-        println("orig_λ = $(orig_λ), best_λ = $(best_λ)")
+        #println("orig_λ = $(orig_λ), best_λ = $(best_λ)")
         if orig_λ >= 0
             shaped_orig = ShapedNoise(members(shaped_2[:chr,1:orig_λ]))
             for i = 1:orig_λ
-                shaped_orig[i] = spheretoshaped(sphere[:chr, i], model)
+                shaped_orig[i] = spheretoshaped(sphere_2[:chr, i], model)
             end
             shaped_orig_container = shaped_orig
             if orig_λ == size_2  shaped_best_container = NaN end
@@ -237,12 +238,12 @@ function ShapedNoise(sphere::SphericalNoise, model::CMAES_Model; dualcenter = fa
         if best_λ >= 0
             shaped_best = ShapedNoise(members(shaped_2[:chr,1:best_λ]))
             for i = 1:best_λ
-                shaped_best[i] = spheretoshaped(sphere[:chr, i], model)
+                shaped_best[i] = spheretoshaped(sphere_2[:chr, i], model)
             end
             shaped_best_container = shaped_best
             if best_λ == size_2  shaped_orig_container = NaN end
         end
-        println("size of orig population = $(popnsize(shaped_orig_container)) & best population = $(popnsize(shaped_best_container))")
+        #println("size of orig population = $(popnsize(shaped_orig_container)) & best population = $(popnsize(shaped_best_container))")
         (shaped_orig_container, shaped_best_container)
     end
 end
