@@ -26,6 +26,33 @@ function update!(runInfo::RunInfo, sys::CMAES_System)
     runInfo.allSourceValues = AllSourceParms(sys)      # for all-mirror
 end
 
+function update_scales!(source::SelectionSource, model::CMAES_Model)
+
+	len = length(source.fitness)
+	w = weights(model)
+	orig_score = 0
+	best_score = 0
+	orig_scale = 0
+	best_scale = 0
+
+	for i=1:len
+		(source.source[i] == :orig) ? orig_score += w[i] : best_score += w[i]
+	end
+
+	if orig_score > best_score
+		orig_scale = 1 + orig_score
+		best_scale = 2 - orig_scale
+	elseif best_score > orig_score
+		best_scale = 1 + best_score
+		orig_scale = 2 - best_scale
+	elseif orig_score == best_score
+		orig_scale = best_scale = 1
+	end
+
+	orig_scale!(model, orig_scale)
+	best_scale!(model, best_scale)
+end
+
 #----------------------
 # RunInfo - Updates
 
@@ -77,6 +104,8 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   runInfo[:fitsummary]	= fitsummary(selected, runInfo, w)
   src = SelectionSource(sourcevalues(runInfo), state)
   runInfo[:source] = deepcopy(src)
+
+  update_scales!(src, postModel_shadow)
   #online update of model parms
   #update!(src, postModel, system(state))
   # system state information - shadowged

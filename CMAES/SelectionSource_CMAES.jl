@@ -93,7 +93,7 @@ end
 
 combinedsize(s::SelectionSource) = length(s.fitness)
 
-centerselected(s::SelectionSource)             = any((x)->(x[2] == :center), s.source) && any((y)->(y[2] == :orig), s.source)
+centerselected(s::SelectionSource)             = (any((x)->(x[2] == :center), s.source) && any((x)->(x[1] == :orig), s.source))
 
 count(s::SelectionSource, origin::Symbol)      = count((x)-> (x[2] == origin), s.source)
 ranks(s::SelectionSource, origin::Symbol)      = s.rank[s.source .== origin]

@@ -11,14 +11,14 @@ end
 function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, monitored = false)
 	prefixNames = ["fn", "dim", "elitism", "ctr", "run"]
 	firstTime = true
-	for n = [20]
+	for n = [25]
 		testFn = generatetests(n, 0.0; ε = 1.0e-5)
 		#fn_name = [:rastrigin]
 		fn_name  = [:rastrigin,:levy,:elliptical,:ackley,:griewank]
 		for name in fn_name
 			f = testFn[name]
 			r_UnitShell = rand_shell(optimum(f))
-			for includeCenter = [false,true], elitism = [false,true]
+			for includeCenter = [false, true], elitism = [false]
 				sys = CMAES_System(n, f; maxEvals = 1_000_000, includeCenter = includeCenter, elitism = elitism)
 				rsys = CMAES_Restart(; η = 2.0)
 				deg = 5.0

@@ -37,8 +37,10 @@ function Model_Parms(n::Integer, f::RealFitness;
                      c_μ = min(1 - c_1, α_μ * (μ_eff - 2 + 1/μ_eff) / ((n + 2)^2 + α_μ * μ_eff / 2)),
                      d_σ = 1 + 2 * max(0, sqrt((μ_eff - 1) / (n + 1))) + c_σ,
                      #d_σ = (0.7 * (1/c_σ)) + 1,
-                     chi_mean = sqrt(n) * (1 - 1/4n + 1/21n^2))
-  Model_Parms(n, λ, μ, μ_eff, c_c, c_σ, c_1, c_μ, d_σ, chi_mean, Weights(w), direction(f))
+                     chi_mean = sqrt(n) * (1 - 1/4n + 1/21n^2),
+                     orig_scale = 1,
+                     best_scale = 1)
+  Model_Parms(n, λ, μ, μ_eff, c_c, c_σ, c_1, c_μ, d_σ, chi_mean, Weights(w), direction(f), orig_scale, best_scale)
 end
 
 #-------------------------
@@ -47,6 +49,9 @@ end
 
 #---------------
 # Internal Update helper functions
+function lambda_scale_parms(m::CMAES_Model)
+    (m.parms.orig_scale, m.parms.best_scale)
+end
 
 function covarmatrix_updateparms(m::CMAES_Model)
   (m.C, m.p_c, m.h_σ, m.parms.c_c, m.parms.c_1, m.parms.c_μ, m.parms.μ_eff)
@@ -217,6 +222,7 @@ end
 #  Model public functions
 #-------------------------
 
+N(model::CMAES_Model) = model.parms.N
 center(model::CMAES_Model) = model.center
 center_(model::CMAES_Model) = model.center_
 center(model::CMAES_Model, popnSize) =
@@ -224,7 +230,7 @@ center(model::CMAES_Model, popnSize) =
 centermember(model::CMAES_Model, objfun::Function) =
           Member(center(model), objfun)
 centermember_(model::CMAES_Model, objfun::Function) =
-          Member(center_(model), objfun)          
+          Member(center_(model), objfun)
 σ_estimate(model::CMAES_Model) = model.σ
 sigma(model::CMAES_Model) = model.σ
 covar(model::CMAES_Model) = model.C
@@ -244,6 +250,11 @@ p_σ(model::CMAES_Model) = model.p_σ
 p_c(model::CMAES_Model) = model.p_c
 α_μ(model::CMAES_Model) = model.parms.α_μ
 chi_mean(model::CMAES_Model) = model.parms.chi_mean
+orig_scale!(model::CMAES_Model, f::Float64) = model.parms.orig_scale = f
+best_scale!(model::CMAES_Model, f::Float64) = model.parms.best_scale = f
+orig_scale(model::CMAES_Model) = model.parms.orig_scale
+best_scale(model::CMAES_Model) = model.parms.best_scale
+
 #breaking up results of equations
 #-------------SIGMA STEP SIZE PATH UPDATE--------------#
 #(1-c_σ)p_σ

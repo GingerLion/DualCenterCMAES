@@ -31,6 +31,8 @@ mutable struct Model_Parms
   chi_mean::Real
   w::Weights
   direction::Symbol
+  orig_scale::Float64 # used to scale how much solutions are generated off of center and center_
+  best_scale::Float64 # used to scale how much solutions are generated off of center and center_
 end
 
 const Reproduction_Parms = Model_Parms

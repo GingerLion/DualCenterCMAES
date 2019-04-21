@@ -94,7 +94,7 @@ initializing(c::CMAES_State) = (c.gen == 0)
 pW(c::CMAES_State) = c.pW
 sW(c::CMAES_State) = c.sW
 
-#General shadowged Functions
+#General shadowed Functions
 currentmodel_(c::CMAES_State) = c.nModel_shadow
 #mu_(c::CMAES_State) = c.nModel_shadow.parms.μ
 #lambda_(c::CMAES_State) = c.nModel_shadow.parms.λ

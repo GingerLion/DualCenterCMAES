@@ -71,24 +71,32 @@ end
 
 function evolvepopn!(state::CMAES_State, f::RealFitness)
   (gen, model, gen_shadow, model_shadow) = evolve_parms(state)
-
+  (orig_scale, best_scale) = lambda_scale_parms(currentmodel_(state))
   #generate samples from center
   (nOffspring, nE, nW) = generatesamples(model)
   #(nOffspring_, nE_, nW_) = generatesamples_(model, state, deepcopy(nE))
 
   #generate shadow samples from center & and best chromosome
-  (nOffspring_shadow, nE, nW_shadow) = generatesamples(model_shadow, deepcopy(nE))
-  (nOffspring_shadow_, nE_, nW_shadow_) = generatesamples_(model_shadow, deepcopy(nE))   #generate samples based on best solution
+  #(nOffspring_shadow, nE, nW_shadow) = generatesamples(model_shadow, deepcopy(nE))
+  (nOffspring_shadow, nOffspring_shadow_, nE_, nW_shadow, nW_shadow_) = generatesamples_(model_shadow, deepcopy(nE))   #generate samples based on best solution
 
   #evaluate the popns separately
   evaluate!(nOffspring, f)
-  evaluate!(nOffspring_shadow, f)
-  evaluate!(nOffspring_shadow_, f)
-  #add shadow popn and shadow popn generated from the 2nd center and their fitness values
-  dualcenterpopn = pcat(nOffspring_shadow, nOffspring_shadow_)
+  if (typeof(nOffspring_shadow) <: Population)  evaluate!(nOffspring_shadow, f)  end
+  if (typeof(nOffspring_shadow_) <: Population) evaluate!(nOffspring_shadow_, f) end
 
-  #add shadow noise and shadow_ noise generated from the 2nd center
-  dualcenternoise = ShapedNoise(mcat(noisevalues(nW_shadow), noisevalues(nW_shadow_)))
+  #add shadow popn and shadow popn generated from the 2nd center and their fitness values
+  if !(typeof(nOffspring_shadow) <: Population)
+      dualcenterpopn = nOffspring_shadow_
+      dualcenternoise = nW_shadow_
+  elseif !(typeof(nOffspring_shadow_) <: Population)
+      dualcenterpopn = nOffspring_shadow
+      dualcenternoise = nW_shadow
+  else
+      dualcenterpopn = pcat(nOffspring_shadow, nOffspring_shadow_)
+      #add shadow noise and shadow_ noise generated from the 2nd center
+      dualcenternoise = ShapedNoise(mcat(noisevalues(nW_shadow), noisevalues(nW_shadow_)))
+  end
 
   # select samples (and noise that generated them)
   (sOffspring, sW) = es_selection(state, model, f, nOffspring, nW)
@@ -134,16 +142,24 @@ function generatesamples(model::CMAES_Model)
   (nOffspring, nE, nW)
 end
 #shadowing generate sampels
-function generatesamples(model::CMAES_Model, nE)
-    nW = ShapedNoise(nE, model)
-    nOffspring = model + nW
-    (nOffspring, nE, nW)
-end
+#function generatesamples(model::CMAES_Model, nE)
+#    nW = ShapedNoise(nE, model)
+#    nOffspring = model + nW
+#    (nOffspring, nE, nW)
+#end
 #shadowing generate samples off of best chromosome a.k.a center_
 function generatesamples_(model::CMAES_Model, nE)
-    nW = ShapedNoise(nE, model)
-    nOffspring = RegularPopulation(nW, σ_estimate(model) * members(nW) .+ center_(model))
-    (nOffspring, nE, nW)
+    (nW_orig, nW_best) = ShapedNoise(nE, model, dualcenter = true)
+    !(typeof(nW_orig) <: Noise) ? nOffspring = NaN : nOffspring = model + nW_orig
+    !(typeof(nW_best) <: Noise) ? nOffspring_best = NaN : nOffspring_best = RegularPopulation(nW_best, σ_estimate(model) * members(nW_best) .+ center_(model))
+
+    if !(typeof(nW_orig) <: Noise) && (typeof(nW_best) <: Noise)
+        (NaN, nOffspring_best, nE, NaN, nW_best)
+    elseif !(typeof(nW_best) <: Noise) && (typeof(nW_orig) <: Noise)
+        (nOffspring, NaN , nE, nW_orig, NaN)
+    else
+        (nOffspring, nOffspring_best, nE, nW_orig, nW_best)
+    end
 end
 
 function es_selection(state, model, f, nOffspring, nW; shadow = false)
@@ -163,9 +179,9 @@ function es_selection(state, model, f, nOffspring, nW; shadow = false)
   elseif shadow
       # when intializing, offspring == center & no parents or ν_population yet
       (initializing(state)    ? sel☾μ▴λ☽(nOffspring, nW, μ, shadow = true)                    :
-       addparents && addcentr ? sel☾μ✢λ✢1☽(state, nOffspring, nW, μ, center_, shadow = true) :
+       addparents && addcentr ? sel☾μ✢λ✢1☽(state, nOffspring, nW, μ, center, shadow = true) :
        addparents             ? sel☾μ✢λ☽(state, nOffspring, nW, μ, shadow = true)              :
-       addcentr               ? sel☾μ▴λ✢1☽(nOffspring, nW, μ, center_)
+       addcentr               ? sel☾μ▴λ✢1☽(nOffspring, nW, μ, center)
                               : sel☾μ▴λ☽(nOffspring, nW, μ))
   else
       # when intializing, offspring == center & no parents or ν_population yet
