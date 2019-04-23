@@ -52,7 +52,7 @@ returnstate(ri::ReturnInfo) = ri.state
 function ReReturnInfo(state::State, runInfo::Monitor)
 	bestMember = best(state)
     bestMember_shadow = best_(state)
-    EA_ReReturnInfo(nil(), runInfo, (bestMember[1], bestMember[2], 1), (bestMember_shadow[1], bestMember_shadow[2], 1), nil(), nil(), nil(), nil())
+    EA_ReReturnInfo(nil(), runInfo, (bestMember[1], bestMember[2], 1), (bestMember_shadow[1], bestMember_shadow[2], 1), nil(), nil(), nil(), nil(), nil(), nil())
 end
 
 #--------------------------------------
@@ -62,7 +62,9 @@ function update!(rinfo::ReReturnInfo, state::State, restart::RestartState)
   rinfo.state       = cons(deepcopy(state), rinfo.state)
   rinfo.popnSize    = cons(popnsize(state), rinfo.popnSize)
   rinfo.localEvals  = cons(evals(state), rinfo.localEvals)
+  rinfo.localEvals_ = cons(evals_(state), rinfo.localEvals_)
   rinfo.totalEvals  = cons(evals(restart), rinfo.totalEvals)
+  rinfo.totalEvals_  = cons(evals_(restart), rinfo.totalEvals_)
   rinfo.stagnation  = cons(stagnflags(restart), rinfo.stagnation)
   #restart.parms.σ_init *= 2
   if better(state, rinfo.best)
@@ -77,7 +79,9 @@ function reverse!(rinfo::ReReturnInfo)
   rinfo.state = reverse(rinfo.state)
   rinfo.popnSize = reverse(rinfo.popnSize)
   rinfo.localEvals = reverse(rinfo.localEvals)
+  rinfo.localEvals_ = reverse(rinfo.localEvals_)
   rinfo.totalEvals = reverse(rinfo.totalEvals)
+  rinfo.totalEvals_  = reverse(rinfo.totalEvals_)
   rinfo.stagnation = reverse(rinfo.stagnation)
 end
 
@@ -85,7 +89,9 @@ function collect!(rinfo::ReReturnInfo)
   rinfo.state = collect(rinfo.state)
   rinfo.popnSize = collect(rinfo.popnSize)
   rinfo.localEvals = collect(rinfo.localEvals)
+  rinfo.localEvals_ = collect(rinfo.localEvals_)
   rinfo.totalEvals = collect(rinfo.totalEvals)
+  rinfo.totalEvals_  = collect(rinfo.totalEvals_)
   rinfo.stagnation = collect(rinfo.stagnation)
 end
 

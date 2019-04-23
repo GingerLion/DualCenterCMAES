@@ -46,9 +46,16 @@ end
 
 function updategen!(state::CMAES_State)
   state.evalCount += evalsPerGen(system(state))
-  state.evalCount_shadow += evalsPerGen(system(state))
+  if status_(state) != :found
+      state.evalCount_shadow += evalsPerGen_(system(state))
+      state.gen_shadow += 1
+  else
+      state.evalCount_shadow = state.evalCount_shadow
+      state.gen_shadow = state.gen_shadow
+      #println("not incrementing shadow system's evals.")
+  end
   state.gen +=  1
-  state.gen_shadow += 1
+
 end
 
 function update!(state::CMAES_State, model::CMAES_Model, model_shadow::CMAES_Model,

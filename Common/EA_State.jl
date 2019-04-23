@@ -86,16 +86,17 @@ function found!(state::State, fit::Fitness)
  	if found(state)
  		found(state)
  	elseif found(state, fit)
+		println("Normal found solution at gen = $(currentgen(state))")
  		state.status = :found
 	end
 end
 
 function found!_(state::State, fit::Fitness)
  	if found_(state)
-		println("Shadow found solution first!")
+		#println("Shadow found solution first! gen = $(currentgen(state)), gen_shadow = $(currentgen_(state))")
  		found_(state)
  	elseif found_(state, fit)
-		println("Shadow found solution first!")
+		println("Shadow found solution at gen = $(currentgen(state))")
 		state.status_shadow = :found
 		#state.status = :found
 	end

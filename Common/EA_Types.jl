@@ -95,7 +95,9 @@ mutable struct EA_ReReturnInfo <: ReReturnInfo
   best_shadow::Tuple
   popnSize::List      # list of (mu, lambda) pairs for CMAES
   localEvals::List
+  localEvals_::List
   totalEvals::List
+  totalEvals_::List
   stagnation::List
 end
 
@@ -121,6 +123,7 @@ end
 mutable struct RestartState
   rep::Int
   totalEvals::Integer
+  totalEvals_::Integer
   bfHist::BestFitHistory
   stagnation::Vector{Bool}
   shouldRestart::Bool
@@ -130,6 +133,7 @@ mutable struct RestartState
     restart = new()
     restart.rep = 0
     restart.totalEvals = 0
+    restart.totalEvals_ = 0
     restart.bfHist = bfHist
     restart.shouldRestart = false
     restart.parms = parms

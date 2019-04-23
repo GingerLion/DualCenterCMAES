@@ -12,7 +12,7 @@
 #   testCount::Int
 #   ignoreStagnation::Bool
 #   historyWindow::Union{Symbol, Int}
-#   η::Int, 
+#   η::Int,
 #--------------------------------------
 #--------------------------------------
 # Outer Constructor
@@ -29,7 +29,8 @@ end
 ##  General Functions
 
 rep(restart::RestartState) = restart.rep
-evals(restart::RestartState) =restart.totalEvals
+evals(restart::RestartState) = restart.totalEvals
+evals_(restart::RestartState) = restart.totalEvals_
 bestfithist(restart::RestartState) = restart.bfHist
 ignorestagnation(restart::RestartState) = restart.parms.ignoreStagnation
 stagnation(restart::RestartState) = restart.stagnation
@@ -46,15 +47,21 @@ function stagnationupdate!(restart::RestartState, state::State)
   end
 end
 
-function update!(restart::RestartState, state::State, sys::System) 
+function update!(restart::RestartState, state::State, sys::System)
   restart.totalEvals += evalsPerGen(sys)
+  if status_(state) != :found
+      restart.totalEvals_ += evalsPerGen_(sys)
+  else
+      restart.totalEvals_ = restart.totalEvals_
+  end
   restart.bfHist[] = bestfitness(best(state))
+  # need to add BestFitHistory for shadow
 end
 
 ##--------------------------------------
 ##  General Restart Criteria
 
-function equalfunvalhist(currentFit::Vector, restart::RestartState) 
+function equalfunvalhist(currentFit::Vector, restart::RestartState)
 	historyFit = history(bestfithist(restart))
 	allFit = vcat(currentFit, historyFit)
 	zero_hist = (maximum(historyFit) - minimum(historyFit) == 0.0)

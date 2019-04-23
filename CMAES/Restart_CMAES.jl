@@ -61,7 +61,7 @@ tol_x(restart::RestartState) = restart.parms.tol_x
 #-----------------------------------------------------------------------
 
 function stagnationcriteria(state::CMAES_State, restart::RestartState)
-  (model, gen) = (currentmodel(state), currentgen(state))
+  (model, model_shadow, gen, gen_shadow) = (currentmodel(state), currentmodel_(state), currentgen(state), currentgen_(state))
   [equalfunvalhist(state, restart),
    tolx(model, tol_x(restart)),
    noeffectaxis(model, gen),

@@ -21,7 +21,7 @@ function println(returnInfo::ReturnInfo)
 	state = returnInfo.state
 	(bestChr, bestFit) = best(state)
 	(bestChr_shadow, bestFit_shadow) = best_(state)
-	println("\n$(state.status): gen = $(gen(state)),  evals = $(evals(state))")
+	println("\n$(state.status): gen = $(gen(state)),  evals = $(evals(state)), evals_shadow = $(evals_(state))")
 	println("best: fit[$bestFit]")
 	println("best: shadow_fit[$bestFit_shadow]")
 	println("best chr$bestChr")
@@ -33,7 +33,7 @@ function println(returnInfo::ReReturnInfo, restart::RestartState)
     (bestChr, bestFit, bestRep) = returnInfo.best
 	(bestChr_shadow, bestFit_shadow) = returnInfo.best_shadow
     currentRep = reps(returnInfo)
-    println("\n$(state.status): after $(evals(restart)) evals, at gen = $(gen(state)) within rep = $(reps(returnInfo))")
+    println("\n$(state.status): after $(evals(restart)) evals and evals_shadow = $(evals_(restart)), at gen = $(gen(state)) within rep = $(reps(returnInfo))")
     print("best: ")
     if currentRep == bestRep
     	println("fit[$bestFit]")

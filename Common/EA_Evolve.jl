@@ -25,6 +25,7 @@ function evolve!(state::State, f::Fitness, runInfo::Monitor, verbose::Verbose)
       status(state)
   elseif status_(state) == :found
       status_(state)
+  end
 end
 
 #-----------------------------------------------------------------------

@@ -10,12 +10,16 @@ function equalfunvalhist(state::CMAES_State, restart::RestartState)
 	equalfunvalhist(currentFit, restart)
 end
 
+#function equalfunvalhist(state::CMAES_State, restart::RestartState)
+#	currentFit = fitness(state.nOffspring_shadow)
+#	equalfunvalhist(currentFit, restart)
+#end
 # TolX
 # For each dimentsion, the complete (after multiplying by the step-size σ) covariance path value is less than a tolerance value
 tolx(m::CMAES_Model, tol_x::Float64) = (m.σ < tol_x && all(m.σ * m.p_c .< tol_x))
 
 # noeffectaxis
-# Takes changes with respect to the main coordinate axes induced by C into account. 
+# Takes changes with respect to the main coordinate axes induced by C into account.
 #     Eigenvectors are found in the columns of matrix B and the eigenvalues from the diagonal values of D
 
 # The following noeffectaxis criteria is always performed because it would cause an exception to occur if left alone
