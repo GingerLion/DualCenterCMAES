@@ -70,7 +70,7 @@ function update!(rinfo::ReReturnInfo, state::State, restart::RestartState)
   if better(state, rinfo.best)
     rinfo.best = (bestchromosome(state), bestfitness(state), rep(restart))
   end
-  if better(state, rinfo.best_shadow)
+  if better_(state, rinfo.best_shadow)
     rinfo.best_shadow = (bestchromosome_(state), bestfitness_(state), rep(restart))
   end
 end

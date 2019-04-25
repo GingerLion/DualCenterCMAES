@@ -82,6 +82,7 @@ parms(c::CMAES_State) = (c.sys, c.sys.sParms, c.sys.rParms)
 sourceparms(c::CMAES_State) = c.sourceParms
 errorstate(c::CMAES_State) = (c.status == :error)
 error!(c::CMAES_State, errorCode::Symbol = :error) = (c.status = errorCode)
+error!_(c::CMAES_State, errorCode::Symbol = :error) = (c.status_shadow = errorCode)
 currentmodel(c::CMAES_State) = c.nModel
 mu(c::CMAES_State) = c.nModel.parms.μ
 lambda(c::CMAES_State) = c.nModel.parms.λ
@@ -170,28 +171,52 @@ complexeigerr_(state::CMAES_State) = (status_(state) == :complexEigenError)
 zeroeigerr_(state::CMAES_State) = (status_(state) == :zeroEigenError)
 eigenerror_(state::CMAES_State) = (negeigerr_(state) || complexeigerr_(state) || zeroeigerr_(state))
 
-function invsqrtC!(c::CMAES_State, m::CMAES_Model)
-  try
-  	invsqrtC!(m)
-  catch
-    error!(c, :zeroEigenError)
+function invsqrtC!(c::CMAES_State, m::CMAES_Model; shadow = false)
+  if !shadow
+	  try
+	  	invsqrtC!(m)
+	  catch
+	    error!(c, :zeroEigenError)
+	  end
+  else
+	  try
+		  invsqrtC!(m)
+	  catch
+		  error!_(c, :zeroEigenError)
+	  end
   end
 end
 
-function eigendecomp!(c::CMAES_State, m::CMAES_Model)
-  try
-  	eigendecomp!(m)
-  catch
-    error!(c, :complexEigenError)
+function eigendecomp!(c::CMAES_State, m::CMAES_Model; shadow = false)
+  if !shadow
+	  try
+	  	eigendecomp!(m)
+	  catch
+	    error!(c, :complexEigenError)
+	  end
+  else
+	  try
+		  eigendecomp!(m)
+	  catch
+		  error!_(c, :complexEigenError)
+	  end
   end
 end
 
-function sqrtC!(c::CMAES_State, m::CMAES_Model)
-  try
-  	sqrtC!(m)
-  catch
-    error!(c, :negativeEigenError)
-  end
+function sqrtC!(c::CMAES_State, m::CMAES_Model; shadow = false)
+	if !shadow
+	  try
+	  	sqrtC!(m)
+	  catch
+	    error!(c, :negativeEigenError)
+	  end
+  	else
+		try
+			sqrtC!(m)
+		catch
+			error!_(c, :negativeEigenError)
+		end
+	end
 end
 
 

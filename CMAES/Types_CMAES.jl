@@ -253,6 +253,7 @@ mutable struct CMAES_RestartFull <: CMAES_Restart
   initλ::Int
   tol_f::Float64          # CMAES only (probably)
   tol_x::Float64          # CMAES only
+  tol_x_::Float64          #uses σ from shadow model to calculate tol_x_
   center_init::Vector
   σ_init::Float64
 end

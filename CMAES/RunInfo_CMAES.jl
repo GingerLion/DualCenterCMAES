@@ -135,7 +135,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   #runInfo[:all_source]       = SelectionSource(allsourcevalues(runInfo), all_sortOrder)
 
   #eigenvalue & eigenvector study
-  if !eigenerror(state)
+  if !eigenerror(state) && !eigenerror_(state)
 	  #NON-shadowGED
 	  eigvals = eigendecomp(postModel)[1]
 	  eigvecs = eigendecomp(postModel)[2]

@@ -10,13 +10,18 @@ function equalfunvalhist(state::CMAES_State, restart::RestartState)
 	equalfunvalhist(currentFit, restart)
 end
 
+function equalfunvalhist_(state::CMAES_State, restart::RestartState)
+	currentFit = fitness(state.nOffspring_shadow)
+	equalfunvalhist_(currentFit, restart)
+end
+
 #function equalfunvalhist(state::CMAES_State, restart::RestartState)
 #	currentFit = fitness(state.nOffspring_shadow)
 #	equalfunvalhist(currentFit, restart)
 #end
 # TolX
 # For each dimentsion, the complete (after multiplying by the step-size σ) covariance path value is less than a tolerance value
-tolx(m::CMAES_Model, tol_x::Float64) = (m.σ < tol_x && all(m.σ * m.p_c .< tol_x))
+tolx(m::CMAES_Model, tol_x::Float64) = (all(m.σ * m.p_c .< tol_x) && all(m.σ * sqrt.(m.γ) .< tol_x))
 
 # noeffectaxis
 # Takes changes with respect to the main coordinate axes induced by C into account.

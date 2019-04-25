@@ -125,7 +125,9 @@ mutable struct RestartState
   totalEvals::Integer
   totalEvals_::Integer
   bfHist::BestFitHistory
+  bfHist_::BestFitHistory
   stagnation::Vector{Bool}
+  stagnation_::Vector{Bool}
   shouldRestart::Bool
   parms::Restart
 
@@ -135,6 +137,7 @@ mutable struct RestartState
     restart.totalEvals = 0
     restart.totalEvals_ = 0
     restart.bfHist = bfHist
+    restart.bfHist_ = deepcopy(bfHist)
     restart.shouldRestart = false
     restart.parms = parms
     restart

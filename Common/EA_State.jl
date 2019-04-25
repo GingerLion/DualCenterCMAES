@@ -66,6 +66,8 @@ bestfitness(state::State) = bestfitness(best(state))
 bestfitness_(state::State) = bestfitness(best_(state))
 better(state1::State, state2::Union{State,Tuple}) = (maximizing(state1) ? bestfitness(state1) > bestfitness(state2)
 																 			  : bestfitness(state1) < bestfitness(state2))
+better_(state1::State, state2::Union{State,Tuple}) = (maximizing(state1) ? bestfitness_(state1) > bestfitness(state2)
+																			  : bestfitness_(state1) < bestfitness(state2))
 better(member::Tuple, state::State) = (maximizing(state) ? bestfitness(member) > bestfitness(state)
 															: bestfitness(member) < bestfitness(state))
 
@@ -98,6 +100,6 @@ function found!_(state::State, fit::Fitness)
  	elseif found_(state, fit)
 		println("Shadow found solution at gen = $(currentgen(state))")
 		state.status_shadow = :found
-		#state.status = :found
+		state.status = :found
 	end
 end

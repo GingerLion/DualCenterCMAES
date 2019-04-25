@@ -123,11 +123,16 @@ function evolvepopn!(state::CMAES_State, f::RealFitness)
 
   generatesamples_prep!(state, nModel)
   if (any(i -> !isnan(i), nModel_shadow.C))
-      generatesamples_prep!(state, nModel_shadow)
+      generatesamples_prep!(state, nModel_shadow, shadow = true)
   end
 
-  found!(state, f)          # will overwrite status if found, even if the zero eigenvalue error was previously set
-  found!_(state,f)
+  if status(state) != :found
+      found!(state, f)
+  end          # will overwrite status if found, even if the zero eigenvalue error was previously set
+  if status_(state) != :found
+      found!_(state,f)
+  end
+
   if status(state) == :found
       status(state)
   elseif status_(state) == :found
@@ -135,10 +140,10 @@ function evolvepopn!(state::CMAES_State, f::RealFitness)
   end
 end
 
-function generatesamples_prep!(state::CMAES_State, model::CMAES_Model)
-  eigendecomp!(state, model)
-  sqrtC!(state, model)
-  invsqrtC!(state, model)
+function generatesamples_prep!(state::CMAES_State, model::CMAES_Model; shadow = false)
+  eigendecomp!(state, model, shadow = shadow)
+  sqrtC!(state, model, shadow = shadow)
+  invsqrtC!(state, model, shadow = shadow)
 end
 
 function generatesamples(model::CMAES_Model)

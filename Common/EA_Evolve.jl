@@ -11,7 +11,7 @@ function evolve!(state::State, f::Fitness; runInfo = NoMonitor(), verbose = NotV
 end
 
 function evolve!(state::State, f::Fitness, runInfo::Monitor, verbose::Verbose)
-  if evolvable(state)
+  if evolvable(state) || evolvable_(state)
     evolvepopn!(state, f)
 
     if evolvable(state)

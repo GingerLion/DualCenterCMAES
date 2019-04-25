@@ -29,11 +29,12 @@ end
 
 function CMAES_RestartFull(rsys::CMAES_RestartBase, state::CMAES_State, center_init::Vector,  σ_init::Float64)
   tol_x = rsys.tol_f * sigma(state)
+  tol_x_ = rsys.tol_f * sigma_(state)
   initLambda = lambda(state)
   #σ_mult = 2*σ_init
   hw = ((rsys.historyWindow == :default) ? 10 + ceil(Int, 30 * dimensions(state) / lambda(state))
                                          : rsys.historyWindow)
-  CMAES_RestartFull(rsys.ignoreStagnation, hw, rsys.η, rsys.η_μ, rsys.η_λ, initLambda, rsys.tol_f, tol_x, center_init, σ_init)
+  CMAES_RestartFull(rsys.ignoreStagnation, hw, rsys.η, rsys.η_μ, rsys.η_λ, initLambda, rsys.tol_f, tol_x, tol_x_, center_init, σ_init)
 end
 
 
@@ -41,6 +42,7 @@ end
 # General Functions - CMAES_Restart only
 #-----------------------------------------------------------------------
 tol_x(rsys::CMAES_Restart) = rsys.tol_x
+tol_x_(rsys::CMAES_Restart) = rsys.tol_x_
 
 
 #-----------------------------------------------------------------------
@@ -54,6 +56,7 @@ initcenter(restart::RestartState) = restart.parms.center_init
 initσ(restart::RestartState) = restart.parms.σ_init
 tol_f(restart::RestartState) = restart.parms.tol_f
 tol_x(restart::RestartState) = restart.parms.tol_x
+tol_x_(restart::RestartState) = restart.parms.tol_x
 
 
 #-----------------------------------------------------------------------
@@ -61,7 +64,7 @@ tol_x(restart::RestartState) = restart.parms.tol_x
 #-----------------------------------------------------------------------
 
 function stagnationcriteria(state::CMAES_State, restart::RestartState)
-  (model, model_shadow, gen, gen_shadow) = (currentmodel(state), currentmodel_(state), currentgen(state), currentgen_(state))
+  (model, gen) = (currentmodel(state), currentgen(state))
   [equalfunvalhist(state, restart),
    tolx(model, tol_x(restart)),
    noeffectaxis(model, gen),
@@ -72,6 +75,18 @@ function stagnationcriteria(state::CMAES_State, restart::RestartState)
    conditioncov(model)]
 end
 
+function stagnationcriteria_(state::CMAES_State, restart::RestartState)
+  (model_shadow, gen_shadow) = (currentmodel_(state), currentgen_(state))
+  [equalfunvalhist_(state, restart),
+   tolx(model_shadow, tol_x_(restart)),
+   noeffectaxis(model_shadow, gen_shadow),
+   negeigerr_(state),
+   complexeigerr_(state),
+   zeroeigerr_(state),
+   noeffectcoord(model_shadow),
+   conditioncov(model_shadow)]
+end
+
 function nextpopnsize(sys::CMAES_System, restart::RestartState)
   (convert(Int,floor(mu(sys) * scalemu(restart))), convert(Int,floor(lambda(sys) * scalelambda(restart))))
 end
@@ -80,5 +95,6 @@ function next!(restart::RestartState, state::CMAES_State)
   restart.rep += 1
   histWindow = 10 * restart.rep + ceil(Int, 30 * dimensions(state) / initλ(restart))
   restart.bfHist = BestFitHistory(histWindow, direction(state))
+  restart.bfHist_ = BestFitHistory(histWindow, direction(state))
   restart.shouldRestart = false
 end
