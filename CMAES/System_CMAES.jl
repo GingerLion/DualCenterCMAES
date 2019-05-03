@@ -50,7 +50,7 @@ lambda(sys::CMAES_System) = sys.sParms.λ
 weights(sys::CMAES_System) = sys.rParms.w
 popnsize(sys::CMAES_System) = (mu(sys), lambda(sys))
 evalsPerGen(sys::CMAES_System) = lambda(sys) + (includecenter(sys) ? 1 : 0)
-evalsPerGen_(sys::CMAES_System) = 2 * lambda(sys) + (includecenter(sys) ? 1 : 0)
+evalsPerGen_(sys::CMAES_System) = lambda(sys) + (includecenter(sys) ? 1 : 0)
 
 function runEA(sys::CMAES_System, f::RealFitness; center_init = ones(n), σ_init = 1.0,
                    monitoring = false, verbose = NotVerbose())

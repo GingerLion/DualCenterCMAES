@@ -33,7 +33,7 @@
 function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::RealFitness)
 	(n, λ, μ, direction) = (sys.rParms.N, sys.sParms.λ, sys.sParms.μ, sys.sParms.direction)
 	state.nModel = model
-	state.nModel_shadow = model
+	state.nModel_shadow = deepcopy(model)
 	state.sys = sys
 	state.gen = 0
 	state.gen_shadow = state.gen

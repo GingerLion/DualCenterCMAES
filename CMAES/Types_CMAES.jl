@@ -119,7 +119,7 @@ struct Selection_Parms
   elitism::Bool
   η::Int64
   function Selection_Parms(N, μ, λ, direction, loaded, beginBinding, segmentCount, includeCenter, elitism, η)
-    @assert μ < λ "Offspring population must be larger then parent population"
+    @assert μ < λ "Offspring population must be larger then parent population" # used to be μ < λ
     new(N, μ, λ, direction, loaded, beginBinding, segmentCount, includeCenter, elitism, η)
   end
 end
