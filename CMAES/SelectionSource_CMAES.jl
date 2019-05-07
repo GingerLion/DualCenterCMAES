@@ -7,52 +7,61 @@ selectiontype(sParms::SelectionSourceParms) = sParms.selectionType
 allsources(sParms::SelectionSourceParms) = sParms.sourcevalues          # depreciated
 sourcevalues(sParms::SelectionSourceParms) = sParms.sourceValues
 
-SelectionSourceParms(sys::CMAES_System) = SelectionSourceParms(elitism(sys), includecenter(sys), mu(sys), lambda(sys), η(sys))
-AllSourceParms(sys::CMAES_System) = AllSourceParms(mu(sys), lambda(sys), η(sys))
+function SelectionSourceParms(sys::CMAES_System)
+    SelectionSourceParms(elitism(sys), includecenter(sys), mu(sys), lambda(sys), η(sys))
+end
+
+function AllSourceParms(sys::CMAES_System)
+    λ_1 = floor(Int64, lambda(sys)/2)
+    λ_2 = lambda(sys) - λ_1
+    AllSourceParms(mu(sys), λ_1, λ_2, η(sys))
+end
 EliteSourceParms(sys::CMAES_System) = EliteSourceParms(mu(sys), lambda(sys), η(sys))
 CenterSelSourceParms(sys::CMAES_System) = CenterSelSourceParms(lambda(sys))
 
 function SelectionSourceParms(elitism::Bool, includeCenter::Bool, μ::Int, λ::Int, η::Int)
+  first_half = floor(Int64, λ/2)
+  second_half = λ - first_half
   if elitism && includeCenter
-    AllSourceParms(μ, λ, η)
+    AllSourceParms(μ, first_half, second_half, η)
   elseif elitism
-    EliteSourceParms(μ, λ, η)
+    EliteSourceParms(μ, first_half, second_half, η)
   elseif includeCenter
-    CenterSelSourceParms(λ)
+    CenterSelSourceParms(first_half, second_half)
   else
-    SingleSourceParms(λ)
+    SingleSourceParms(first_half, second_half)
   end
 end
 
-function SingleSourceParms(λ::Int)
+function SingleSourceParms(λ_1::Int, λ_2::Int)
     #order of vcat is very important
-    o_orig = fill(:orig, λ)
-    o_best = fill(:best, λ)
+    o_orig = fill(:orig, λ_1)
+    o_best = fill(:best, λ_2)
     SingleSourceParms(vcat(o_orig,o_best), SingleSource)
 end
-function AllSourceParms(μ::Int, λ::Int, η::Int)
+function AllSourceParms(μ::Int, λ_1::Int, λ_2::Int, η::Int)
   p_orig = fill((:orig,:parents), Int(floor(μ/η)))
   p_best = fill((:best,:parents), Int(floor(μ/η)))
   c_orig = fill((:orig,:center), 1)
   c_best = fill((:best,:center), 1)
-  o_orig = fill((:orig,:offspring), λ)
-  o_best = fill((:best,:offspring), λ)
+  o_orig = fill((:orig,:offspring), λ_1)
+  o_best = fill((:best,:offspring), λ_2)
   MultiSourceParms(vcat(p_orig,p_best,c_orig,c_best,o_orig,o_best), EliteCenterSource)
 end
 
-function EliteSourceParms(μ::Int, λ::Int, η::Int)
+function EliteSourceParms(μ::Int, λ_1::Int, λ_2::Int, η::Int)
     p_orig = fill((:orig,:parents), Int(floor(μ/η)))
     p_best = fill((:best,:parents), Int(floor(μ/η)))
-    o_orig = fill((:orig,:offspring), λ)
-    o_best = fill((:best,:offspring), λ)
+    o_orig = fill((:orig,:offspring), λ_1)
+    o_best = fill((:best,:offspring), λ_2)
   MultiSourceParms(vcat(p_orig,p_best,o_orig,o_best), EliteSource)
 end
 
-function CenterSelSourceParms(λ::Int)
+function CenterSelSourceParms(λ_1::Int, λ_2::Int)
   c_orig = fill((:orig,:center), 1)
   c_best = fill((:best,:center), 1)
-  o_orig = fill((:orig,:offspring), λ)
-  o_best = fill((:best,:offspring), λ)
+  o_orig = fill((:orig,:offspring), λ_1)
+  o_best = fill((:best,:offspring), λ_2)
   MultiSourceParms(vcat(c_orig, c_best, o_orig, o_best), CenterSource)
 end
 

@@ -8,11 +8,11 @@
 #-----------------------------------------------------------------------------
 
 # Interface:
-#   chrlength, popnsize, 
+#   chrlength, popnsize,
 #   members, members_, fitness, fitness_, direction,
 #   minimizing, maximizing, minimize (depreciated), maximize (depreciated)
 #   maximum, minimum, indbest, best, bestchromosome, bestfitness
-#   getindex, setindex!, mcat, pcat, 
+#   getindex, setindex!, mcat, pcat,
 #   +, *,
 
 

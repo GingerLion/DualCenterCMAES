@@ -92,6 +92,8 @@ function evolvepopn!(state::CMAES_State, f::RealFitness)
   if (typeof(nOffspring_shadow) <: Population)  evaluate!(nOffspring_shadow, f)  end
   if (typeof(nOffspring_shadow_) <: Population) evaluate!(nOffspring_shadow_, f) end
 
+  #println("center_orig fitnesses :\n $(fitness(nOffspring_shadow))")
+  #println("center_best fitnesses :\n $(fitness(nOffspring_shadow_))")
   #add shadow popn and shadow popn generated from the 2nd center and their fitness values
   if !(typeof(nOffspring_shadow) <: Population)
       dualcenterpopn = nOffspring_shadow_
@@ -102,14 +104,17 @@ function evolvepopn!(state::CMAES_State, f::RealFitness)
   else
       dualcenterpopn = pcat(nOffspring_shadow, nOffspring_shadow_)
       #add shadow noise and shadow_ noise generated from the 2nd center
-      dualcenternoise = ShapedNoise(mcat(noisevalues(nW_shadow), noisevalues(nW_shadow_)))
+      dualcenternoise = nW_shadow + nW_shadow_
   end
 
   # select samples (and noise that generated them)
   (sOffspring, sW) = es_selection(state, model, f, nOffspring, nW)
   #(sOffspring_shadow, sW_shadow) = es_selection(state, model_shadow, f, nOffspring_shadow, nW_shadow, shadow = true)
-
+  #println("dualcenterpopn members = $(members(dualcenterpopn))\n")
+  #println("dualcenterpopn fitness = $(fitness(dualcenterpopn))\n")
   (sOffspring_shadow, sW_shadow) = es_selection(state, model_shadow, f, dualcenterpopn, dualcenternoise, shadow = true)
+  #println("sortOrder = $(sOffspring_shadow.index)")
+  #println("selected fitnesses = \n $(fitness(sOffspring_shadow))")
   #w_1!(model)
   #w_1!(model_shadow)
   flatten!(sW, weights(model))
@@ -194,7 +199,7 @@ function es_selection(state, model, f, nOffspring, nW; shadow = false)
        addparents && addcentr ? sel☾μ✢λ✢1☽(state, nOffspring, nW, μ, center, shadow = true) :
        addparents             ? sel☾μ✢λ☽(state, nOffspring, nW, μ, shadow = true)              :
        addcentr               ? sel☾μ▴λ✢1☽(nOffspring, nW, μ, center)
-                              : sel☾μ▴λ☽(nOffspring, nW, μ))
+                              : sel☾μ▴λ☽(nOffspring, nW, μ, shadow = true))
   else
       # when intializing, offspring == center & no parents or ν_population yet
       (initializing(state)    ? sel☾μ▴λ☽(nOffspring, nW, μ)                    :

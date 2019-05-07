@@ -52,6 +52,7 @@ evaluated(popn::SortedPopulation) = true
 function truncate!(popn::SortedPopulation, μ)
   @assert μ <= maxsize(popn) "truncated population size must be no larger then originating population"
   popn.index = popn.sortOrder[1:μ]
+  #println("sort order = $(popn.index)\n")
   SortStructure(popn) #update SortStructure
 end
 

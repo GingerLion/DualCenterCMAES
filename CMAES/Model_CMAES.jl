@@ -38,8 +38,8 @@ function Model_Parms(n::Integer, f::RealFitness;
                      d_σ = 1 + 2 * max(0, sqrt((μ_eff - 1) / (n + 1))) + c_σ,
                      #d_σ = (0.7 * (1/c_σ)) + 1,
                      chi_mean = sqrt(n) * (1 - 1/4n + 1/21n^2),
-                     orig_scale = 1,
-                     best_scale = 1)
+                     orig_scale = 1.0,
+                     best_scale = 1.0)
   Model_Parms(n, λ, μ, μ_eff, c_c, c_σ, c_1, c_μ, d_σ, chi_mean, Weights(w), direction(f), orig_scale, best_scale)
 end
 

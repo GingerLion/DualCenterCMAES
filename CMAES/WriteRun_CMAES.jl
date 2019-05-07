@@ -121,12 +121,15 @@ function write_run_header(fileName::String, returnInfo::ReReturnInfo, prefixName
     #write(f, "eig_vals$(sep)\n")
     #vectors
 
-    write(f, "best_fit$(sep)")
-    write(f, "best_fit_shadow$(sep)")
+    write(f, "bestFit$(sep)")
+    write(f, "bestFitShadow$(sep)")
     write(f, "centerFit$(sep)")
-    write(f, "centerFitshadow$(sep)")
+    write(f, "centerFitShadow$(sep)")
+    write(f, "centerFitShadow_$(sep)")
+    write(f, "src_bestFitShadow_$(sep)")
     write(f, "center$(sep)")
     write(f, "center_shadow$(sep)")
+
     #write(f, "B$(sep)")
     #write(f, "D$(sep)")
     write(f, "BD$(sep)")
@@ -209,8 +212,11 @@ function write_run(fileName::String, returnInfo::ReReturnInfo, sys::CMAES_System
       write(f, "$(ri[:best_shadow_fit][i])$sep")
       write(f, "$(ri[:center_fit][i])$sep")
       write(f, "$(ri[:center_fit_shadow][i])$sep")
+      write(f, "$(ri[:center_fit_shadow_][i])$sep")
+      write(f, "$(ri[:center_shadow_source][i])$sep")
       write(f, "$(ri[:center][i][1])$sep")
       write(f, "$(ri[:center_shadow][i][1])$sep")
+
       #write(f, "$(ri[:eig_vecs][i])$sep")
       #write(f, "$(ri[:eig_vals][i])$sep")
       write(f, "$(ri[:BD][i])$sep")

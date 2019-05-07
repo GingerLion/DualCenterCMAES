@@ -81,7 +81,7 @@ pcat(n1::Noise, n2::Noise) = typeof(n1)(mcat(noisevalues(n1), noisevalues(n2)))
 pcat(n1::Noise, n2::Noise, n3::Noise) = typeof(n1)(mcat(noisevalues(n1), noisevalues(n2), noisevalues(n3)))
 +(n::Noise, popn::Population) = noisevalues(n) + popn
 +(popn::Population, n::Noise) = popn + noisevalues(n)
-+(n1::Noise, n2::Noise) = typeof(n1)(pcat(noisevalues(n1), noisevalues(n2)))
++(n1::Noise, n2::Noise) = typeof(n1)(mcat(noisevalues(n1) , noisevalues(n2)))
 
 # important - adds noise to a model to create a regular population
 +(n::Noise, m::CMAES_Model) = RegularPopulation(n, σ_estimate(m) * members(n) .+ center(m))
@@ -202,7 +202,7 @@ function ShapedNoise(sphere::SphericalNoise)
   ShapedNoise(members(sphere))
 end
 
-function ShapedNoise(sphere::SphericalNoise, model::CMAES_Model; dualcenter = false)
+#=function ShapedNoise(sphere::SphericalNoise, model::CMAES_Model; dualcenter = false)
     if !dualcenter
         shaped = ShapedNoise(sphere)
         for i=1:popnsize(shaped)
@@ -211,20 +211,20 @@ function ShapedNoise(sphere::SphericalNoise, model::CMAES_Model; dualcenter = fa
         return shaped
     else
         floor_half_λ = floor(Int,lambda(model)/2)
-
+        #println("dualcentering....")
         shaped = ShapedNoise(sphere) # λ
         #println("μ = $(mu(model)), λ = $(lambda(model))")
         size = popnsize(shaped) # λ
         size_half_orig = popnsize(shaped) - floor_half_λ # (λ - floor_half_λ) = ~ λ/2
         size_half_best = size - size_half_orig # (λ - size_half_orig) = ~ λ/2
-        #println("size = $(size)")
+        println("size = $(size)")
         #println("size_2 = $(size_2)")
         orig_λ = floor(Int64, orig_scale(model) * size_half_orig) # orig_scale * λ/2
         best_λ = size - orig_λ  #leftover lambda (λ - orig_λ)
         shaped_orig_container = deepcopy(shaped)
         shaped_best_container = deepcopy(shaped)
 
-        #println("orig_λ = $(orig_λ), best_λ = $(best_λ)")
+        println("orig_λ = $(orig_λ), best_λ = $(best_λ)")
         if orig_λ >= 0
             if orig_λ > size orig_λ -= 1 end
             shaped_orig = ShapedNoise(members(shaped[:chr,1:orig_λ]))
@@ -247,8 +247,96 @@ function ShapedNoise(sphere::SphericalNoise, model::CMAES_Model; dualcenter = fa
         #println("size of orig population = $(popnsize(shaped_orig_container)) & best population = $(popnsize(shaped_best_container))")
         (shaped_orig_container, shaped_best_container)
     end
-end
+end=#
+#=function ShapedNoise(sphere::SphericalNoise, model::CMAES_Model; dualcenter = false)
+    if !dualcenter
+        shaped = ShapedNoise(sphere)
+        for i=1:popnsize(shaped)
+            shaped[i] = spheretoshaped(sphere[:chr,i], model)
+        end
+        return shaped
+    else
+        extra_sphere = SphericalNoise(N(model), lambda(model)) # λ
+        sphere_2 = deepcopy(sphere) + extra_sphere # λ + λ = 2λ
 
+        shaped = ShapedNoise(sphere) # λ
+        shaped_extra = ShapedNoise(extra_sphere)
+        shaped_2 = deepcopy(shaped) + deepcopy(shaped_extra) # 2λ
+        #println("μ = $(mu(model)), λ = $(lambda(model))")
+        size = popnsize(shaped) # λ
+        size_2 = popnsize(shaped_2) # 2λ
+        #println("size = $(size)")
+        #println("size_2 = $(size_2)")
+        orig_λ = floor(Int64, orig_scale(model) * size)
+        best_λ = size_2 - orig_λ  #leftover lambda
+        shaped_orig_container = deepcopy(shaped)
+        shaped_best_container = deepcopy(shaped)
+
+        #println("orig_λ = $(orig_λ), best_λ = $(best_λ)")
+        if orig_λ >= 0
+            shaped_orig = ShapedNoise(members(shaped_2[:chr,1:orig_λ]))
+            for i = 1:orig_λ
+                shaped_orig[i] = spheretoshaped(sphere_2[:chr, i], model)
+            end
+            shaped_orig_container = shaped_orig
+            if orig_λ == size_2  shaped_best_container = NaN end
+        end
+
+        if best_λ >= 0
+            shaped_best = ShapedNoise(members(shaped_2[:chr,1:best_λ]))
+            for i = 1:best_λ
+                shaped_best[i] = spheretoshaped(sphere_2[:chr, i], model)
+            end
+            shaped_best_container = shaped_best
+            if best_λ == size_2  shaped_orig_container = NaN end
+        end
+        #println("size of orig population = $(popnsize(shaped_orig_container)) & best population = $(popnsize(shaped_best_container))")
+        (shaped_orig_container, shaped_best_container)
+    end
+end=#
+function ShapedNoise(sphere::SphericalNoise, model::CMAES_Model; dualcenter = false)
+    if !dualcenter
+        shaped = ShapedNoise(sphere)
+        for i=1:popnsize(shaped)
+            shaped[i] = spheretoshaped(sphere[:chr,i], model)
+        end
+        return shaped
+    else
+
+        shaped = ShapedNoise(sphere) # λ
+        #println("μ = $(mu(model)), λ = $(lambda(model))")
+        size = popnsize(shaped) # λ
+        size_1 = floor(Int64, size/2)
+        size_2 = size - size_1
+        #println("size = $(size)")
+        #println("size_2 = $(size_2)")
+        orig_λ = floor(Int64, orig_scale(model) * size_1)
+        best_λ = size - orig_λ  #leftover lambda
+        shaped_orig_container = deepcopy(shaped)
+        shaped_best_container = deepcopy(shaped)
+
+        #println("orig_λ = $(orig_λ), best_λ = $(best_λ)")
+        if orig_λ >= 0
+            shaped_orig = ShapedNoise(members(shaped[:chr,1:orig_λ]))
+            for i = 1:orig_λ
+                shaped_orig[i] = spheretoshaped(sphere[:chr, i], model)
+            end
+            shaped_orig_container = shaped_orig
+            if orig_λ == size  shaped_best_container = NaN end
+        end
+
+        if best_λ >= 0
+            shaped_best = ShapedNoise(members(shaped[:chr,1:best_λ]))
+            for i = 1:best_λ
+                shaped_best[i] = spheretoshaped(sphere[:chr, i], model)
+            end
+            shaped_best_container = shaped_best
+            if best_λ == size  shaped_orig_container = NaN end
+        end
+        #println("size of orig population = $(popnsize(shaped_orig_container)) & best population = $(popnsize(shaped_best_container))")
+        (shaped_orig_container, shaped_best_container)
+    end
+end
 # is σ_estimate accurate enough because it may have hardly changed from the previous generation?
 ShapedNoise(popn::Population, model::CMAES_Model; shadow = false)  = ((shadow) ? ShapedNoise((members(popn) .- center_(model)) / σ_estimate(model))
                                                                             : ShapedNoise((members(popn) .- center(model)) / σ_estimate(model)))

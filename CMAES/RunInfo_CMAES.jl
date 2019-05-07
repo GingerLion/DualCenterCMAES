@@ -30,15 +30,16 @@ function update_scales!(source::SelectionSource, model::CMAES_Model)
 
 	len = length(source.fitness)
 	w = weights(model)
-	orig_score = 0
-	best_score = 0
-	orig_scale = 0
-	best_scale = 0
+	orig_score = 0.0
+	best_score = 0.0
+	orig_scale = 0.0
+	best_scale = 0.0
 
 	for i=1:len
 		(source.source[i] == :orig) ? orig_score += w[i] : best_score += w[i]
 	end
-
+	#println("sourcevalues = $(source.source)\n")
+	#println("orig score = $(orig_score), best_score = $(best_score)")
 	if orig_score > best_score
 		orig_scale = 1 + orig_score
 		best_scale = 2 - orig_scale
@@ -49,8 +50,14 @@ function update_scales!(source::SelectionSource, model::CMAES_Model)
 		orig_scale = best_scale = 1
 	end
 
-	orig_scale!(model, orig_scale)
-	best_scale!(model, best_scale)
+	if (orig_scale == 2.0 || best_scale == 2.0)
+		orig_scale!(model, 1.0)
+		best_scale!(model, 1.0)
+	else
+		#println("orig scale = $(orig_scale), best_scale = $(best_scale)")
+		orig_scale!(model, orig_scale)
+		best_scale!(model, best_scale)
+	end
 end
 
 #----------------------
@@ -81,6 +88,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   offspring_shadow = population_(state, :pre)
   selected_shadow = population_(state, :post)
   state_center_shadow = centerpopn(preModel_shadow, f)
+  state_center_shadow_ = centerpopn_(preModel_shadow, f)
   covMatrix_shadow = covar(postModel_shadow)
 
   # general information
@@ -104,7 +112,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   runInfo[:fitsummary]	= fitsummary(selected, runInfo, w)
   src = SelectionSource(sourcevalues(runInfo), state)
   runInfo[:source] = deepcopy(src)
-
+  runInfo[:center_shadow_source] = src.source[1]
   update_scales!(src, postModel_shadow)
   #online update of model parms
   #update!(src, postModel, system(state))
@@ -122,6 +130,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   offspring_center = center(offspring_selected, w)
   runInfo[:center_fit] = state_center[:fit,1]
   runInfo[:center_fit_shadow] = state_center_shadow[:fit,1]
+  runInfo[:center_fit_shadow_] = state_center_shadow_[:fit,1]
 
   runInfo[:offspring_center] = (offspring_center, objfn(f)(offspring_center))
   runInfo[:offs_fitsummary]	 = fitsummary(offspring_selected,runInfo,  w)
@@ -268,7 +277,7 @@ end
 
 center(popn::SortedPopulation, w::Weights) = vec(mean(popn[:chr, :], w, dims=2))
 centerpopn(model::CMAES_Model, f::RealFitness) = RegularPopulation(centermember(model, objfn(f)))
-
+centerpopn_(model::CMAES_Model, f::RealFitness) = RegularPopulation(centermember_(model, objfn(f)))
 
 #-----------------------------------------
 # Fitness summary calculations
