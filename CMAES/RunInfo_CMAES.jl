@@ -120,6 +120,8 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   runInfo[:best_fit] = bestfitness(state)
   runInfo[:best_shadow_fit] = bestfitness_(state)
   runInfo[:center_shadow]  = (state_center_shadow[:chr, 1], state_center_shadow[:fit, 1])
+
+  runInfo[:firstRequest] = firstRequest(state)
   #   Mirroring state
   #   note: currently does not include mirror of covar, signma or paths,
   #		    i.e. only center is mirrored from the model

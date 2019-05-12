@@ -15,9 +15,10 @@ function println(state::CMAES_State, restart::RestartState)
   stagnation = restart.stagnation
   stagnation_ = restart.stagnation_
   println("\nRestart: rep = $(rep(restart)) at gen = $(currentgen(state))")
+  println("$(firstRequest(state)) system requested to restart first.")
   conditionPrinted = false
   msg = ["hist", "tolx", "zeroAxis", "negEigVal", "complexEigVal", "zeroEigVal", "zeroCoord", "cond"]
-  #=if any(stagnation)
+  if any(stagnation)
     print("<")
 
     for i = 1:length(stagnation)
@@ -29,8 +30,8 @@ function println(state::CMAES_State, restart::RestartState)
     end
 
     println("> : normal system")
-end=#
-
+end
+    conditionPrinted = false
   if any(stagnation_)
     print("<")
 

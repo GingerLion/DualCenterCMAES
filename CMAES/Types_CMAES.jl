@@ -212,6 +212,7 @@ mutable struct CMAES_State <: State
    status_shadow::Symbol			# shadowged status
    best::Tuple                  # shadowged best chromosome
    best_shadow::Tuple
+   firstRequest::Symbol
 
   function CMAES_State(model::CMAES_Model, sys::CMAES_System, f::RealFitness, runInfo = NoMonitor(), verbose = false)
     state = new()

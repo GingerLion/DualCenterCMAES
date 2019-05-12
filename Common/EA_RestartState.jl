@@ -43,14 +43,15 @@ function stagnationupdate!(restart::RestartState, state::State)
   if (currentgen(state) > 0)
   	restart.stagnation = stagnationcriteria(state, restart)
     restart.stagnation_ = stagnationcriteria_(state, restart)
-  	#if any(restart.stagnation)
-      #println("RESTART by: normal system")
-  	 # restart.shouldRestart = true
-    #elseif any(restart.stagnation_)
-    if any(restart.stagnation_)
-      #println("RESTART by: dualcenter system")
+
+    if any(restart.stagnation) && any(restart.stagnation_)
       restart.shouldRestart = true
+    elseif any(restart.stagnation) && !any(restart.stagnation_)
+      state.firstRequest = :normal
+    elseif any(restart.stagnation_) && !any(restart.stagnation)
+      state.firstRequest = :dualcenter
     end
+
   end
 end
 

@@ -28,6 +28,7 @@
 #	status_shadow::Symbol			# shadowged status
 #   best::Tuple
 #	best_shadow::Tuple				# shadowged best chromosome
+#	firstRequest::Symbol		# records the first system that wishes to restart
 #---------------------------------------------------------------------------------------------------------------------------------
 
 function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::RealFitness)
@@ -52,6 +53,7 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 	state.pOffspring_shadow = deepcopy(state.pOffspring)
 	state.best = best(state.sOffspring)
 	state.best_shadow = best(state.sOffspring_shadow)
+	state.firstRequest = :none
 	evolvable!(state)
 	evolvable!_(state)
 end
@@ -94,6 +96,7 @@ segmentcount(c::CMAES_State) = c.sys.sParms.segmentCount
 initializing(c::CMAES_State) = (c.gen == 0)
 pW(c::CMAES_State) = c.pW
 sW(c::CMAES_State) = c.sW
+firstRequest(c::CMAES_State) = c.firstRequest
 
 #General shadowed Functions
 currentmodel_(c::CMAES_State) = c.nModel_shadow
