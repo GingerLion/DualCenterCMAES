@@ -66,6 +66,7 @@ tol_x_(restart::RestartState) = restart.parms.tol_x
 function stagnationcriteria(state::CMAES_State, restart::RestartState)
   (model, gen) = (currentmodel(state), currentgen(state))
   [equalfunvalhist(state, restart),
+   #toomuchfluctuation(state, restart),
    tolx(model, tol_x(restart)),
    noeffectaxis(model, gen),
    negeigerr(state),
@@ -78,6 +79,7 @@ end
 function stagnationcriteria_(state::CMAES_State, restart::RestartState)
   (model_shadow, gen_shadow) = (currentmodel_(state), currentgen_(state))
   [equalfunvalhist_(state, restart),
+   #toomuchfluctuation_(state, restart),
    tolx(model_shadow, tol_x_(restart)),
    noeffectaxis(model_shadow, gen_shadow),
    negeigerr_(state),
@@ -96,5 +98,6 @@ function next!(restart::RestartState, state::CMAES_State)
   histWindow = 10 * restart.rep + ceil(Int, 30 * dimensions(state) / initλ(restart))
   restart.bfHist = BestFitHistory(histWindow, direction(state))
   restart.bfHist_ = BestFitHistory(histWindow, direction(state))
+  restart.bcHist_ = BestChrHistory(10, direction(state))
   restart.shouldRestart = false
 end

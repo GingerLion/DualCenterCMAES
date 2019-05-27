@@ -11,6 +11,10 @@ function SelectionSourceParms(sys::CMAES_System)
     SelectionSourceParms(elitism(sys), includecenter(sys), mu(sys), lambda(sys), η(sys))
 end
 
+function SelectionSourceParms(sys::CMAES_System, model::CMAES_Model)
+    SelectionSourceParms(orig_scale(model), best_scale(model), elitism(sys), includecenter(sys), mu(sys), lambda(sys), η(sys))
+end
+
 function AllSourceParms(sys::CMAES_System)
     λ_1 = floor(Int64, lambda(sys)/2)
     λ_2 = lambda(sys) - λ_1
@@ -21,6 +25,20 @@ CenterSelSourceParms(sys::CMAES_System) = CenterSelSourceParms(lambda(sys))
 
 function SelectionSourceParms(elitism::Bool, includeCenter::Bool, μ::Int, λ::Int, η::Int)
   first_half = floor(Int64, λ/2)
+  second_half = λ - first_half
+  if elitism && includeCenter
+    AllSourceParms(μ, first_half, second_half, η)
+  elseif elitism
+    EliteSourceParms(μ, first_half, second_half, η)
+  elseif includeCenter
+    CenterSelSourceParms(first_half, second_half)
+  else
+    SingleSourceParms(first_half, second_half)
+  end
+end
+
+function SelectionSourceParms(orig_scale::Float64, best_scale::Float64, elitism::Bool, includeCenter::Bool, μ::Int, λ::Int, η::Int)
+  first_half = floor(Int64, orig_scale * λ/2)
   second_half = λ - first_half
   if elitism && includeCenter
     AllSourceParms(μ, first_half, second_half, η)
@@ -65,39 +83,20 @@ function CenterSelSourceParms(λ_1::Int, λ_2::Int)
   MultiSourceParms(vcat(c_orig, c_best, o_orig, o_best), CenterSource)
 end
 
-# abstract type SelectionSource end
-
-# mutable struct EliteSource <: SelectionSource
-#   source::Vector{Symbol}
-#   fitness::Vector
-#   rank::Vector{Float64}
-# end
-
-# mutable struct CenterSource <: SelectionSource
-#   source::Vector{Symbol}
-#   fitness::Vector
-#   rank::Vector{Float64}
-# end
-
-# mutable struct EliteCenterSource <: SelectionSource
-#   source::Vector{Symbol}
-#   fitness::Vector
-#   rank::Vector{Float64}
-# end
-
 # not used? - SelectionSource(ri::RunInfo, state::CMAES_State)                          = SelectionSource(sourceparms(ri), state) #sourceparms? shouldnt it be sourcevalues?
 SelectionSource(sourceParms::SelectionSourceParms, state::CMAES_State)    = SelectionSource(sourceParms, sortorder(state))
 #SelectionSource(sourceParms::SingleSourceParms, sortOrder::SortStructure) = SingleSource()
 # have to change up SelectionSource to use η
 function SelectionSource(sourceParms::SelectionSourceParms, sortOrder::SortStructure)
   sourceValues = sourcevalues(sourceParms)
-  #println("unsorted sourcevalues = $(sourceValues) of size $(length(sourceValues))")
+  #println("SelectionSource_CMAES.jl::92 ->  sourcevalues before sort = $(sourceValues)")
   members = reshape(sourceValues, (1, length(sourceValues)))
   sPopn = SortedPopulation(members, sortOrder)
   source = vec(sPopn[:chr,:])
-  #println("sorted sourcevalues = $(source) of size $(length(source))")
+  #println("SelectionSource_CMAES.jl::96 -> source = $(source)")
   fit = sPopn[:fit, :]
   rank = tiedrank(fit)
+  #println("SelectionSource_CMAES.jl::99 -> index = $(sortOrder.index)")
   selectiontype(sourceParms)(source, fit, rank)
 end
 

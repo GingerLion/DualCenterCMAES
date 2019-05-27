@@ -15,6 +15,16 @@ function equalfunvalhist_(state::CMAES_State, restart::RestartState)
 	equalfunvalhist_(currentFit, restart)
 end
 
+function toomuchfluctuation(state::CMAES_State, restart::RestartState)
+	currentFit = fitness(state.nOffspring)
+	toomuchfluctuation(currentFit, restart)
+end
+
+function toomuchfluctuation_(state::CMAES_State, restart::RestartState)
+	currentFit = fitness(state.nOffspring_shadow)
+	toomuchfluctuation_(currentFit, restart)
+end
+
 #function equalfunvalhist(state::CMAES_State, restart::RestartState)
 #	currentFit = fitness(state.nOffspring_shadow)
 #	equalfunvalhist(currentFit, restart)
@@ -51,3 +61,29 @@ noeffectcoord(m::CMAES_Model) = (m.center == m.σ * m.center / 5.0)
 # The condition number of the matrix C is very large
 # cond(C) is max(eigenvalues) / min(eigenvalues)
 conditioncov(m::CMAES_Model) = (maximum(m.γ)/minimum(m.γ) > 10.0^14)
+
+function toomuchfluctuation(currentFit::Vector, restart::RestartState)
+    historyFit = history(bestfithist(restart))
+    allFit = vcat(currentFit, historyFit)
+	len = length(allFit)
+	if len < 2
+		return false
+	else
+		floor_len = floor(Int64, len/2)
+		remaining_len = len - floor_len
+	    sum(allFit[1:floor_len]) > sum(allFit[floor_len+1:len]) ? true : false
+	end
+end
+
+function toomuchfluctuation_(currentFit::Vector, restart::RestartState)
+    historyFit = history(bestfithist_(restart))
+    allFit = vcat(currentFit, historyFit)
+	len = length(allFit)
+	if len < 2
+		return false
+	else
+		floor_len = floor(Int64, len/2)
+		remaining_len = len - floor_len
+	    sum(allFit[1:floor_len]) > sum(allFit[floor_len+1:len]) ? true : false
+	end
+end

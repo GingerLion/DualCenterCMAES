@@ -20,7 +20,8 @@
 
 function RestartState(rsys::Restart, state::State)
   bfHist = BestFitHistory(rsys.historyWindow, direction(state))
-  restart = RestartState(bfHist, rsys)
+  bcHist_ = BestChrHistory(10, direction(state))
+  restart = RestartState(bfHist, bcHist_, rsys)
   stagnationupdate!(restart, state)
   restart
 end
@@ -44,6 +45,12 @@ function stagnationupdate!(restart::RestartState, state::State)
   	restart.stagnation = stagnationcriteria(state, restart)
     restart.stagnation_ = stagnationcriteria_(state, restart)
 
+    #=if equalfunvalhist(state, restart)
+      state.firstRequest = :normal
+      restart.shouldRestart = true
+    elseif equalfunvalhist_(state, restart)
+      state.firstRequest = :dualcenter
+      restart.shouldRestart = true=#
     if any(restart.stagnation) && any(restart.stagnation_)
       restart.shouldRestart = true
     elseif any(restart.stagnation) && !any(restart.stagnation_)
@@ -64,6 +71,10 @@ function update!(restart::RestartState, state::State, sys::System)
   end
   restart.bfHist[] = bestfitness(best(state))
   restart.bfHist_[] = bestfitness(best_(state))
+  restart.bcHist_[] = bestchromosome(best_(state)) #note that this is a list with its own setindex! function
+  #println("bcHist_ = $(history(restart.bcHist_))")
+  center!_(state, mean(history(restart.bcHist_)))
+  if length(history(restart.bcHist_)) >=  length(restart.bcHist_) restart.bcHist_.history = nil() end
 end
 
 ##--------------------------------------

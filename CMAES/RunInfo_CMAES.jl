@@ -22,13 +22,14 @@ function update!(runInfo::RunInfo, sys::CMAES_System)
     runInfo.uq = locquantile(0.75, w)
     runInfo.med = locquantile(0.5, w)
     runInfo.lq = locquantile(0.25, w)
-    runInfo.sourceValues = SelectionSourceParms(sys)
+    runInfo.sourceValues = SelectionSourceParms(sys) #used to be (sys)
     runInfo.allSourceValues = AllSourceParms(sys)      # for all-mirror
 end
 
-function update_scales!(source::SelectionSource, model::CMAES_Model)
+function update_scales!(runInfo::RunInfo, source::SelectionSource, state::CMAES_State)
 
 	len = length(source.fitness)
+	model = currentmodel_(state)
 	w = weights(model)
 	orig_score = 0.0
 	best_score = 0.0
@@ -50,16 +51,36 @@ function update_scales!(source::SelectionSource, model::CMAES_Model)
 		orig_scale = best_scale = 1
 	end
 
-	if (orig_scale == 2.0 || best_scale == 2.0)
+	#=if (orig_scale == 2.0 || best_scale == 2.0)
+		#println("54 - RunInfo_CMAES.jl: reseting the scales!")
 		orig_scale!(model, 1.0)
 		best_scale!(model, 1.0)
-	else
+	else=#
 		#println("orig scale = $(orig_scale), best_scale = $(best_scale)")
-		orig_scale!(model, orig_scale)
-		best_scale!(model, best_scale)
-	end
+	orig_scale!(model, orig_scale)
+	best_scale!(model, best_scale)
+	(orig_scale, best_scale) = lambda_scale_parms(currentmodel_(state))
+    #println("RunInfo_CMAES.jl::63 -> new orig_scale = $(orig_scale), best_scale = $(best_scale)")
+	#now update SelectionSourceParms a.k.a rinfo.sourcevalues to reflect new ratio or orig_λ to best_λ
+	runInfo.sourceValues = SelectionSourceParms(system(state), model)
+	#println("starting gen with source = $(sourcevalues(sourcevalues(runInfo)))")
 end
 
+#=function stepsize!_(source::SelectionSource, model::CMAES_Model)
+    σ_ = sigma_(model)
+	#find how many of the solutions are from :best
+	#do 1/5th sucess rule
+    p_s = 0
+	p_target = 0.5
+	for i in source.source
+		if i == :best p_s += 1 end
+	end
+	p_s = p_s / lambda(model)
+	#println("p_s = $(p_s)")
+	σ_ = σ_ * exp(1/3 * (p_s - p_target)/(1 - p_target))
+	# set model.σ_ = σ
+	sigma!_(model, σ_)
+end=#
 #----------------------
 # RunInfo - Updates
 
@@ -96,6 +117,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   runInfo[:covar]   	= covMatrix
   runInfo[:cond]   		= cond(covMatrix)
   runInfo[:σ]       	= sigma(state)
+  runInfo[:σ_]			= sigma_(state)
   runInfo[:gen]			= gen(state)
   runInfo[:l_evals] 	= evals(state)
 
@@ -112,8 +134,11 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   runInfo[:fitsummary]	= fitsummary(selected, runInfo, w)
   src = SelectionSource(sourcevalues(runInfo), state)
   runInfo[:source] = deepcopy(src)
-  runInfo[:center_shadow_source] = src.source[1]
-  update_scales!(src, postModel_shadow)
+  runInfo[:center_shadow_source] = first(src.source)
+
+  update_scales!(runInfo, src, state)
+
+  #stepsize!_(src, postModel_shadow)
   #online update of model parms
   #update!(src, postModel, system(state))
   # system state information - shadowged
@@ -133,7 +158,8 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   runInfo[:center_fit] = state_center[:fit,1]
   runInfo[:center_fit_shadow] = state_center_shadow[:fit,1]
   runInfo[:center_fit_shadow_] = state_center_shadow_[:fit,1]
-
+  #println("center_ = $(state_center_shadow_[:fit,1])")
+  #println("center = $(runInfo[:center_fit_shadow]), center_ = $(runInfo[:center_fit_shadow_])")
   runInfo[:offspring_center] = (offspring_center, objfn(f)(offspring_center))
   runInfo[:offs_fitsummary]	 = fitsummary(offspring_selected,runInfo,  w)
 

@@ -120,24 +120,41 @@ mutable struct BestFitHistory
   end
 end
 
+mutable struct BestChrHistory
+  history::List
+  ptr::Int
+  windowSize::Int
+  direction::Symbol
+  function BestChrHistory(windowSize::Int, direction::Symbol)
+    bch= new()
+    bch.windowSize = windowSize
+    bch.history = nil()
+  bch.ptr = 1
+  bch.direction = direction
+  bch
+  end
+end
+
 mutable struct RestartState
   rep::Int
   totalEvals::Integer
   totalEvals_::Integer
   bfHist::BestFitHistory
   bfHist_::BestFitHistory
+  bcHist_::BestChrHistory
   stagnation::Vector{Bool}
   stagnation_::Vector{Bool}
   shouldRestart::Bool
   parms::Restart
 
-  function RestartState(bfHist::BestFitHistory, parms::Restart)
+  function RestartState(bfHist::BestFitHistory, bcHist_::BestChrHistory, parms::Restart)
     restart = new()
     restart.rep = 0
     restart.totalEvals = 0
     restart.totalEvals_ = 0
     restart.bfHist = bfHist
     restart.bfHist_ = deepcopy(bfHist)
+    restart.bcHist_ = bcHist_
     restart.shouldRestart = false
     restart.parms = parms
     restart

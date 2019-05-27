@@ -51,8 +51,10 @@ mutable struct CMAES_Model
   γ::Vector{Float64}          # eigenvalues of C (a vector)
   p_c::Vector{Float64}        # covariance path
   p_σ::Vector{Float64}        # step-size path
+  #p_σ_::Vector{Float64}       # step-size path for σ_
   h_σ::Float64                # used as a switch (makes sure p_c not too big) in the update equations (1.0 if true 0.0 if false)
   σ::Float64                  # estimated standard deviation - aka step-size
+  #σ_::Float64                 # step-size for solutions generated off of center_
   parms::Model_Parms
 
   function CMAES_Model(parms::Model_Parms, center_init, σ_init; gen = 0)
@@ -64,7 +66,9 @@ mutable struct CMAES_Model
     m.C = Matrix(1.0I, N, N)
     m.p_c = zeros(N)
     m.p_σ = zeros(N)
+    #m.p_σ_ = zeros(N)
     m.σ = σ_init
+    #m.σ_ = σ_init
     h_σ!(m, gen)
     eigendecomp!(m)
     sqrtC!(m)

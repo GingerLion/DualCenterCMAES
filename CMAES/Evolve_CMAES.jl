@@ -20,7 +20,7 @@ function update!(state::CMAES_State, nOffspring::Population, nOffspring_shadow::
   state.sOffspring = sOffspring
   state.sOffspring_shadow = sOffspring_shadow
   #update shadow's center_ with best chromosome of sOffspring_shadow
-  center!_(state, bestchromosome(sOffspring_shadow))
+  #center!_(state, bestchromosome(sOffspring_shadow))
 end
 
 function update!(state::CMAES_State, nE::Noise, nW::Noise, nW_shadow::Noise, sW::Noise, sW_shadow::Noise)
@@ -41,6 +41,7 @@ function updatebest!(state::CMAES_State)
     else
         state.best = best(state.sOffspring)
         state.best_shadow = best(state.sOffspring_shadow)
+        #println("bestfit = $(bestfitness(state.sOffspring)) \n bestfit_shadow = $(bestfitness(state.sOffspring_shadow))")
     end
 end
 
@@ -78,7 +79,7 @@ end
 
 function evolvepopn!(state::CMAES_State, f::RealFitness)
   (gen, model, gen_shadow, model_shadow) = evolve_parms(state)
-  (orig_scale, best_scale) = lambda_scale_parms(currentmodel_(state))
+
   #generate samples from center
   (nOffspring, nE, nW) = generatesamples(model)
   #(nOffspring_, nE_, nW_) = generatesamples_(model, state, deepcopy(nE))
@@ -86,6 +87,11 @@ function evolvepopn!(state::CMAES_State, f::RealFitness)
   #generate shadow samples from center & and best chromosome
   #(nOffspring_shadow, nE, nW_shadow) = generatesamples(model_shadow, deepcopy(nE))
   (nOffspring_shadow, nOffspring_shadow_, nE_, nW_shadow, nW_shadow_) = generatesamples_(model_shadow, deepcopy(nE))   #generate samples based on best solution
+
+  orig_λ = 0
+  best_λ = 0
+  (typeof(nW_shadow) <: Noise) ? orig_λ = popnsize(nW_shadow) : orig_λ = 0
+  (typeof(nW_shadow_) <: Noise) ? best_λ = popnsize(nW_shadow_) : best_λ = 0
 
   #evaluate the popns separately
   evaluate!(nOffspring, f)
@@ -115,11 +121,38 @@ function evolvepopn!(state::CMAES_State, f::RealFitness)
   (sOffspring_shadow, sW_shadow) = es_selection(state, model_shadow, f, dualcenterpopn, dualcenternoise, shadow = true)
   #println("sortOrder = $(sOffspring_shadow.index)")
   #println("selected fitnesses = \n $(fitness(sOffspring_shadow))")
-  #w_1!(model)
-  #w_1!(model_shadow)
+
   flatten!(sW, weights(model))
 
+  # fill array with :orig and :best symbols then sort them based on sortOrder and make them a population
+  orig = fill(:orig, orig_λ)
+  best = fill(:best, best_λ)
+  all = vcat(orig, best)
+  #println("Evolve_CMAES.jl::131 ->      source before sort = $(all)")
+  memberz = reshape(all, (1, length(all)))
+  sPopn = SortedPopulation(memberz, SortStructure(sOffspring_shadow))
+  source = vec(sPopn[:chr,:])
+  mems = deepcopy(members(sW_shadow))
+  #println("μ = $(mu(state)), λ = $(lambda(state))")
+  #println("source = $(source)")
+  for i=1:length(source)
+      if source[i] == :best
+          mems[:,i] = (sOffspring_shadow[:chr, i] - center(model_shadow)) / sigma(model_shadow)
+      end
+  end
+  #println("Evolve_CMAES.jl:142 -> source = $(source)")
+  #println("center = $(center(model_shadow))")
+  #println("sortOrder = $(sOffspring_shadow.sortOrder)")
+  #println("Evolve_CMAES.jl::145 -> index = $(sOffspring_shadow.index)")
+  #println("fitnesses = $(fitness(sOffspring_shadow))")
+  #println("offspring = $(members(sOffspring_shadow))")
+  #println("noise = $(mems)")
+  #println("max euclidian distance at -> $(argmax(map(x -> norm(mems[:,x]), 1:length(source))))")
+  #println("min euclidian distance at -> $(argmin(map(x -> norm(mems[:,x]), 1:length(source))))")
+  sW_shadow = ShapedNoise(mems)
+
   flatten!(sW_shadow, weights(model_shadow))
+  #flatten_with_σ!(sW_shadow, weights(model_shadow), model_shadow)
 
   nModel = update(model, sW, gen)
   nModel_shadow = update(model_shadow, sW_shadow, gen_shadow)
@@ -167,7 +200,7 @@ end
 function generatesamples_(model::CMAES_Model, nE)
     (nW_orig, nW_best) = ShapedNoise(nE, model, dualcenter = true)
     !(typeof(nW_orig) <: Noise) ? nOffspring = NaN : nOffspring = model + nW_orig
-    !(typeof(nW_best) <: Noise) ? nOffspring_best = NaN : nOffspring_best = RegularPopulation(nW_best, σ_estimate(model) * members(nW_best) .+ center_(model))
+    !(typeof(nW_best) <: Noise) ? nOffspring_best = NaN : nOffspring_best = RegularPopulation(nW_best, sigma(model) * members(nW_best) .+ center_(model))
 
     if !(typeof(nW_orig) <: Noise) && (typeof(nW_best) <: Noise)
         (NaN, nOffspring_best, nE, NaN, nW_best)

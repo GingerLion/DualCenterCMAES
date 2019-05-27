@@ -28,6 +28,8 @@
 #	status_shadow::Symbol			# shadowged status
 #   best::Tuple
 #	best_shadow::Tuple				# shadowged best chromosome
+#	best_final::Tuple
+#	best_final_::Tuple
 #	firstRequest::Symbol		# records the first system that wishes to restart
 #---------------------------------------------------------------------------------------------------------------------------------
 

@@ -61,6 +61,10 @@ function stepsize_updateparms(m::CMAES_Model)
   (m.σ, m.p_σ, m.parms.c_σ, m.parms.d_σ, m.parms.μ_eff, m.parms.chi_mean)
 end
 
+#=function stepsize_updateparms_(m::CMAES_Model)
+  (m.σ_, m.p_σ_, m.parms.c_σ, m.parms.d_σ, m.parms.μ_eff, m.parms.chi_mean)
+end=#
+
 function setcovarmatrix!(model::CMAES_Model, p_c, C)
   model.p_c = p_c
   model.C = C
@@ -71,6 +75,10 @@ function setstepsize!(model::CMAES_Model, p_σ, σ)
   model.σ = σ
 end
 
+#=function setstepsize!_(model::CMAES_Model, p_σ_, σ_)
+  model.p_σ_ = p_σ_
+  model.σ_ = σ_
+end=#
 #---------------
 # Internal Update functions
 
@@ -126,6 +134,13 @@ function stepsize!(model::CMAES_Model, w)
   setstepsize!(model, p_σ, σ)
 end
 
+#=function updateOtherStepSize!(model::CMAES_Model, w)
+    (σ_, p_σ_, c_σ, d_σ, μ_eff, chi_mean) = stepsize_updateparms_(model)
+    p_σ_ = (1 - c_σ) * p_σ_ + sqrt(c_σ * (2 - c_σ) * μ_eff) * invsqrtC(model) * w
+    σ_ = σ_ * exp(c_σ * (norm(p_σ_)/chi_mean - 1)/ d_σ)
+    setstepsize!_(model, p_σ_, σ_)
+end=#
+
 
 # eig(m.C) -> (v, B) where v are the eigenvalues as a vector and B are the eigenvectors
 # if we set V = Diag(v) then BVB' = C
@@ -169,45 +184,9 @@ function w_1!(model::CMAES_Model)
     model.parms.w = Weights(fill(0.0, mu(model)))
     model.parms.w[1] = 1.0
 end
-#p - (1-off) a.k.a ratio of elitism
-μ_eff!(model::CMAES_Model,p::Float64) = model.parms.μ_eff = (1 / sum(map((i)->(weights(model)[i] + (p/lambda(model)))^2,1:mu(model))))
-μ_eff!(model::CMAES_Model) = model.parms.μ_eff = (1 / sum(map((i)->(weights(model)[i])^2,1:mu(model))))
-c_1!(model::CMAES_Model) = model.parms.c_1 = 2 / ((chrlength(model) + 1.3)^2 + μ_eff(model))
-function c_μ!(model::CMAES_Model)
-    α_μ = 2
-    model.parms.c_μ = min(1 - c_1(model), α_μ * (μ_eff(model) - 2 + 1/μ_eff(model)) / ((chrlength(model) + 2)^2 + α_μ * μ_eff(model) / 2))
-end
-c_c!(model::CMAES_Model) = model.parms.c_c = (4 + μ_eff(model)/chrlength(model)) / (chrlength(model) + 4 + 2μ_eff(model)/chrlength(model))
-c_σ!(model::CMAES_Model) = model.parms.c_σ = (μ_eff(model) + 2) / (chrlength(model) + μ_eff(model) + 5)
-d_σ!(model::CMAES_Model) = model.parms.d_σ = 1 + 2 * max(0, sqrt((μ_eff(model) - 1) / (chrlength(model) + 1))) + c_σ(model)
-c_μ!_(model::CMAES_Model, p::Float64) = model.parms.c_μ += (p/10)
-c_1!_(model::CMAES_Model, p::Float64) = model.parms.c_1 += (p/10)
-c_c!_(model::CMAES_Model, p::Float64) = model.parms.c_c += (p/10)
-#c_σ!_(model::CMAES_Model, p::Float64) = model.parms.c_σ += ?
-#online updating of model_parms
-function update!(s::SelectionSource, model::CMAES_Model, sys::CMAES_System)
-    (par, c, off) = proportions(s)
-    foo = (1 - off)
-  	if (1-off) > 0.5
-    	μ_eff!(model,foo)    #μ_eff! update must always go first
-        c_1!(model)
-        c_1!_(model, foo)
-        c_μ!(model)
-        c_μ!_(model, foo)
-        c_c!(model)
-        c_c!_(model, foo)
-        c_σ!(model)
-        d_σ!(model)
-  	else
-  		μ_eff!(model)               #μ_eff! update must always go first
-        c_1!(model)
-        c_μ!(model)
-        c_c!(model)
-        c_σ!(model)
-        d_σ!(model)
-  	end
-end
 
+c_c!(model::CMAES_Model) = model.parms.c_c = (4 + model.parms.μ_eff/N(model)) / (N(model) + 8 + 2 * model.parms.μ_eff/N(model))
+#c_σ!(model::CMAES_Model) = model.parms.c_σ = (model.parms.μ_eff + 2) / (N(model) + model.parms.μ_eff + 5)
 function getindex(m::CMAES_Model, choice::Symbol, i)
   if choice == :eigvec
     m.B[:, i]
@@ -233,6 +212,8 @@ centermember_(model::CMAES_Model, objfun::Function) =
           Member(center_(model), objfun)
 σ_estimate(model::CMAES_Model) = model.σ
 sigma(model::CMAES_Model) = model.σ
+#sigma_(model::CMAES_Model) = model.σ_
+#sigma!_(model::CMAES_Model, σ_::Float64) = model.σ_ = σ_
 covar(model::CMAES_Model) = model.C
 +(m::CMAES_Model, n::Noise) = n + m
 weights(model::CMAES_Model) = model.parms.w
@@ -293,14 +274,15 @@ C_part3(model::CMAES_Model, n::Noise) = c_μ(model) * covariance(n, weights(mode
 
 # note: order of the updates is important. Each update is dependant on the previous updates having been run.
 function update!(model::CMAES_Model, W::ShapedNoise, gen::Integer)
-  center!(model, weightedavg(W))
-  stepsize!(model, weightedavg(W))
-  h_σ!(model, gen)
-  covarmatrix!(model, W)
+    center!(model, weightedavg(W))
+    stepsize!(model, weightedavg(W))
+    h_σ!(model, gen)
+    #c_c!(model)
+    covarmatrix!(model, W)
 end
 
 function update(model::CMAES_Model, W::ShapedNoise, gen::Integer)
-  model = deepcopy(model)
-  update!(model, W, gen)
-  model
+    model = deepcopy(model)
+    update!(model, W, gen)
+    model
 end
