@@ -73,8 +73,12 @@ function update!(restart::RestartState, state::State, sys::System)
   restart.bfHist_[] = bestfitness(best_(state))
   restart.bcHist_[] = bestchromosome(best_(state)) #note that this is a list with its own setindex! function
   #println("bcHist_ = $(history(restart.bcHist_))")
-  center!_(state, mean(history(restart.bcHist_)))
-  if length(history(restart.bcHist_)) >=  length(restart.bcHist_) restart.bcHist_.history = nil() end
+  len = length(history(restart.bcHist_))
+
+  w = Weights(normalize(map((i)->(log(len+chrlength(state)) - log(i)), 1:len), 1))
+  center!_(state,  sum(map((x) -> w[x] * history(restart.bcHist_)[x], 1:length(w))))
+  #center!_(state, mean(history(restart.bcHist_), w, dims=1))
+  if len >=  length(restart.bcHist_) restart.bcHist_.history = nil() end
 end
 
 ##--------------------------------------

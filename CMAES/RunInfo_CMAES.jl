@@ -30,7 +30,8 @@ function update_scales!(runInfo::RunInfo, source::SelectionSource, state::CMAES_
 
 	len = length(source.fitness)
 	model = currentmodel_(state)
-	w = weights(model)
+	μ = mu(state)
+	w = Weights(normalize(map((i)->(log(μ+chrlength(state)) - log(i)), 1:μ), 1)) #less pressure than log(μ+0.5)
 	orig_score = 0.0
 	best_score = 0.0
 	orig_scale = 0.0
@@ -51,15 +52,26 @@ function update_scales!(runInfo::RunInfo, source::SelectionSource, state::CMAES_
 		orig_scale = best_scale = 1
 	end
 
-	#=if (orig_scale == 2.0 || best_scale == 2.0)
+	#wrote this code because julia has some strange rounding errors e.g. 2.0000000000000000000004 == 2.0 is true but -0.0000000000000004 == 0 is fasle
+	if orig_scale >= 2.0
+		orig_scale = 2.0
+		best_scale = 0.0
+	elseif best_scale >= 2.0
+		best_scale = 2.0
+		orig_scale = 0.0
+	end
+
+	if (orig_scale == 2.0 || best_scale == 2.0)
 		#println("54 - RunInfo_CMAES.jl: reseting the scales!")
-		orig_scale!(model, 1.0)
-		best_scale!(model, 1.0)
-	else=#
+		orig_scale!(model, 1.5)
+		best_scale!(model, 0.5)
+	else
 		#println("orig scale = $(orig_scale), best_scale = $(best_scale)")
-	orig_scale!(model, orig_scale)
-	best_scale!(model, best_scale)
-	(orig_scale, best_scale) = lambda_scale_parms(currentmodel_(state))
+		orig_scale!(model, orig_scale)
+		best_scale!(model, best_scale)
+	end
+	#orig_scale!(model, 1.5)
+	#best_scale!(model, 0.5)
     #println("RunInfo_CMAES.jl::63 -> new orig_scale = $(orig_scale), best_scale = $(best_scale)")
 	#now update SelectionSourceParms a.k.a rinfo.sourcevalues to reflect new ratio or orig_λ to best_λ
 	runInfo.sourceValues = SelectionSourceParms(system(state), model)

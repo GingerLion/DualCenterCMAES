@@ -66,10 +66,10 @@ function toomuchfluctuation(currentFit::Vector, restart::RestartState)
     historyFit = history(bestfithist(restart))
     allFit = vcat(currentFit, historyFit)
 	len = length(allFit)
-	if len < 2
+	if len < 4
 		return false
 	else
-		floor_len = floor(Int64, len/2)
+		floor_len = floor(Int64, len/2) - 2
 		remaining_len = len - floor_len
 	    sum(allFit[1:floor_len]) > sum(allFit[floor_len+1:len]) ? true : false
 	end
@@ -79,10 +79,10 @@ function toomuchfluctuation_(currentFit::Vector, restart::RestartState)
     historyFit = history(bestfithist_(restart))
     allFit = vcat(currentFit, historyFit)
 	len = length(allFit)
-	if len < 2
+	if len < 4
 		return false
 	else
-		floor_len = floor(Int64, len/2)
+		floor_len = floor(Int64, len/2) - 2
 		remaining_len = len - floor_len
 	    sum(allFit[1:floor_len]) > sum(allFit[floor_len+1:len]) ? true : false
 	end
