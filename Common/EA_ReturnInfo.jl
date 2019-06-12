@@ -66,13 +66,26 @@ function update!(rinfo::ReReturnInfo, state::State, restart::RestartState)
   rinfo.totalEvals  = cons(evals(restart), rinfo.totalEvals)
   rinfo.totalEvals_  = cons(evals_(restart), rinfo.totalEvals_)
   rinfo.stagnation  = cons(stagnflags(restart), rinfo.stagnation)
-  #restart.parms.σ_init *= 2
+
   if better(state, rinfo.best)
     rinfo.best = (bestchromosome(state), bestfitness(state), rep(restart))
   end
   if better_(state, rinfo.best_shadow)
     rinfo.best_shadow = (bestchromosome_(state), bestfitness_(state), rep(restart))
   end
+
+  if (found(state) && better(state, rinfo.best_shadow) &&  (first(rinfo.totalEvals) > first(rinfo.totalEvals_)))
+        #change max evals to rinfo.totalEvals so dualcenter stops at same evals
+        system(state).maxEvals = first(rinfo.totalEvals)
+        println("system maxEvals = $(system(state).maxEvals)")
+        state.status_shadow = :evolve
+  elseif (found_(state) && better_(state, rinfo.best) && (first(rinfo.totalEvals_) > first(rinfo.totalEvals)))
+        #change max evals to rinfo.totalEvals so dualcenter stops at same evals
+        system(state).maxEvals = first(rinfo.totalEvals_)
+        println("system maxEvals = $(system(state).maxEvals)")
+        state.status = :evolve
+  end
+
 end
 
 function reverse!(rinfo::ReReturnInfo)

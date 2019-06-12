@@ -21,7 +21,7 @@ end
 
 function runEA(state::State, restart::RestartState, f::Fitness,
                runInfo::Monitor, returnInfo::ReReturnInfo, verbose::Verbose)
-  while evolvable(state, restart)
+  while (evolvable(state, restart) || evolvable_(state, restart))
     if shouldrestart(restart)
       update!(returnInfo, state, restart)
       state = restarting!(state, restart, f, runInfo, verbose)
@@ -31,6 +31,7 @@ function runEA(state::State, restart::RestartState, f::Fitness,
   end
 
   decgen!(state)
+  decgen!_(state)
   update!(returnInfo, state, restart)
   returning(returnInfo, restart, verbose) # WHY?
 end

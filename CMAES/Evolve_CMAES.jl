@@ -1,37 +1,51 @@
 function evolve_parms(state::CMAES_State)
   s = selection_parms(system(state))
   model = deepcopy(state.nModel)
-  model_shadow = deepcopy(state.nModel_shadow)
-  (state.gen, model, state.gen_shadow, model_shadow, s.N, s.λ, s.μ)
+  (state.gen, model, s.N, s.λ, s.μ)
 end
 
-function update!(state::CMAES_State, model::CMAES_Model, model_shadow::CMAES_Model)
+function evolve_parms_(state::CMAES_State)
+    s = selection_parms(system(state))
+    model_shadow = deepcopy(state.nModel_shadow)
+    (state.gen_shadow, model_shadow, s.N, s.λ, s.μ)
+end
+
+function update!(state::CMAES_State, model::CMAES_Model)
   state.pModel = state.nModel
   state.nModel = model
-  state.pModel_shadow = state.nModel_shadow
-  state.nModel_shadow = model_shadow
 end
 
-function update!(state::CMAES_State, nOffspring::Population, nOffspring_shadow::Population, sOffspring::Population, sOffspring_shadow::Population)
+function update!_(state::CMAES_State, model::CMAES_Model)
+    state.pModel_shadow = state.nModel_shadow
+    state.nModel_shadow = model
+end
+
+function update!(state::CMAES_State, nOffspring::Population, sOffspring::Population)
   state.pOffspring = state.sOffspring
-  state.pOffspring_shadow = state.sOffspring_shadow
   state.nOffspring = nOffspring
-  state.nOffspring_shadow = nOffspring_shadow
   state.sOffspring = sOffspring
-  state.sOffspring_shadow = sOffspring_shadow
+end
+
+function update!_(state::CMAES_State, nOffspring::Population, sOffspring::Population)
+  state.pOffspring_shadow = state.sOffspring_shadow
+  state.nOffspring_shadow = nOffspring
+  state.sOffspring_shadow = sOffspring
   #update shadow's center_ with best chromosome of sOffspring_shadow
   #center!_(state, bestchromosome(sOffspring_shadow))
 end
 
-function update!(state::CMAES_State, nE::Noise, nW::Noise, nW_shadow::Noise, sW::Noise, sW_shadow::Noise)
+function update!(state::CMAES_State, nE::Noise, nW::Noise, sW::Noise)
   state.pE = state.nE
   state.pW = state.sW
-  state.pW_shadow = state.sW_shadow
   state.nE = nE
   state.nW = nW
-  state.nW_shadow = nW_shadow
   state.sW = sW
-  state.sW_shadow = sW_shadow
+end
+
+function update!_(state::CMAES_State, nW::Noise, sW::Noise)
+  state.pW_shadow = state.sW_shadow
+  state.nW_shadow = nW
+  state.sW_shadow = sW
 end
 
 #updatebest!(state::CMAES_State) = (state.best = best(state.sOffspring))
@@ -46,26 +60,29 @@ function updatebest!(state::CMAES_State)
 end
 
 function updategen!(state::CMAES_State)
-  state.evalCount += evalsPerGen(system(state))
-  if status_(state) != :found
-      state.evalCount_shadow += evalsPerGen_(system(state))
-      state.gen_shadow += 1
-  else
-      state.evalCount_shadow = state.evalCount_shadow
-      state.gen_shadow = state.gen_shadow
-      #println("not incrementing shadow system's evals.")
-  end
-  state.gen +=  1
-
+  if !stopEvals(state) state.evalCount += evalsPerGen(system(state)); state.gen +=  1 end
+  if !stopEvals_(state) state.evalCount_shadow += evalsPerGen_(system(state)); state.gen_shadow += 1 end
 end
 
-function update!(state::CMAES_State, model::CMAES_Model, model_shadow::CMAES_Model,
-                 nOffspring::Population, nOffspring_shadow::Population, sOffspring::Population, sOffspring_shadow::Population,
-                 nE::Noise, nW::Noise, nW_shadow::Noise, sW::Noise, sW_shadow::Noise)
+function update!(state::CMAES_State, model::CMAES_Model,
+                 nOffspring::Population, sOffspring::Population,
+                 nE::Noise, nW::Noise, sW::Noise)
   # update state
-  update!(state, model, model_shadow)
-  update!(state, nOffspring, nOffspring_shadow, sOffspring, sOffspring_shadow)
-  update!(state, nE, nW, nW_shadow, sW, sW_shadow)
+  update!(state, model)
+  update!(state, nOffspring, sOffspring)
+  update!(state, nE, nW, sW)
+
+  # update progress
+  updategen!(state)
+  updatebest!(state)
+end
+
+function update!_(state::CMAES_State, model::CMAES_Model,
+                 nOffspring::Population, sOffspring::Population, nW::Noise, sW::Noise)
+  # update state
+  update!_(state, model)
+  update!_(state, nOffspring, sOffspring)
+  update!_(state, nW, sW)
 
   # update progress
   updategen!(state)
@@ -76,53 +93,69 @@ end
 # Main Evolve rountine
 # -------------------------------
 # pFoo -> previous foo, nFoo -> new foo, sFoo -> selected foo
-
 function evolvepopn!(state::CMAES_State, f::RealFitness)
-  (gen, model, gen_shadow, model_shadow) = evolve_parms(state)
+    (gen, model) = evolve_parms(state)
 
-  #generate samples from center
-  (nOffspring, nE, nW) = generatesamples(model)
-  #(nOffspring_, nE_, nW_) = generatesamples_(model, state, deepcopy(nE))
+    (nOffspring, nE, nW) = generatesamples(model)
+
+    evaluate!(nOffspring, f)
+
+    # select samples (and noise that generated them)
+    (sOffspring, sW) = es_selection(state, model, f, nOffspring, nW)
+
+    flatten!(sW, weights(model))
+
+    nModel = update(model, sW, gen)
+
+    update!(state, nModel, nOffspring, sOffspring, nE, nW, sW)
+
+    generatesamples_prep!(state, nModel)
+
+    if status(state) != :found
+        found!(state, f)
+    end
+
+    if status(state) == :found
+        status(state)
+    end
+end
+function evolvepopn!_(state::CMAES_State, f::RealFitness)
+  (gen, model) = evolve_parms_(state) # do separate functions for this
 
   #generate shadow samples from center & and best chromosome
-  #(nOffspring_shadow, nE, nW_shadow) = generatesamples(model_shadow, deepcopy(nE))
-  (nOffspring_shadow, nOffspring_shadow_, nE_, nW_shadow, nW_shadow_) = generatesamples_(model_shadow, deepcopy(nE))   #generate samples based on best solution
+  #put this in other function (nE will be passed as function parameter or retrieved through the state
+  (nOffspring, nOffspring_, nE, nW, nW_) = generatesamples_(model, state.nE)   #generate samples based on best solution
 
   orig_λ = 0
   best_λ = 0
-  (typeof(nW_shadow) <: Noise) ? orig_λ = popnsize(nW_shadow) : orig_λ = 0
-  (typeof(nW_shadow_) <: Noise) ? best_λ = popnsize(nW_shadow_) : best_λ = 0
+  (typeof(nW) <: Noise) ? orig_λ = popnsize(nW) : orig_λ = 0
+  (typeof(nW_) <: Noise) ? best_λ = popnsize(nW_) : best_λ = 0
 
   #evaluate the popns separately
-  evaluate!(nOffspring, f)
-  if (typeof(nOffspring_shadow) <: Population)  evaluate!(nOffspring_shadow, f)  end
-  if (typeof(nOffspring_shadow_) <: Population) evaluate!(nOffspring_shadow_, f) end
+  if (typeof(nOffspring) <: Population)  evaluate!(nOffspring, f)  end
+  if (typeof(nOffspring_) <: Population) evaluate!(nOffspring_, f) end
 
   #println("center_orig fitnesses :\n $(fitness(nOffspring_shadow))")
   #println("center_best fitnesses :\n $(fitness(nOffspring_shadow_))")
   #add shadow popn and shadow popn generated from the 2nd center and their fitness values
-  if !(typeof(nOffspring_shadow) <: Population)
-      dualcenterpopn = nOffspring_shadow_
-      dualcenternoise = nW_shadow_
-  elseif !(typeof(nOffspring_shadow_) <: Population)
-      dualcenterpopn = nOffspring_shadow
-      dualcenternoise = nW_shadow
+  if !(typeof(nOffspring) <: Population)
+      dualcenterpopn = nOffspring_
+      dualcenternoise = nW_
+  elseif !(typeof(nOffspring_) <: Population)
+      dualcenterpopn = nOffspring
+      dualcenternoise = nW
   else
-      dualcenterpopn = pcat(nOffspring_shadow, nOffspring_shadow_)
+      dualcenterpopn = pcat(nOffspring, nOffspring_)
       #add shadow noise and shadow_ noise generated from the 2nd center
-      dualcenternoise = nW_shadow + nW_shadow_
+      dualcenternoise = nW + nW_
   end
 
-  # select samples (and noise that generated them)
-  (sOffspring, sW) = es_selection(state, model, f, nOffspring, nW)
   #(sOffspring_shadow, sW_shadow) = es_selection(state, model_shadow, f, nOffspring_shadow, nW_shadow, shadow = true)
   #println("dualcenterpopn members = $(members(dualcenterpopn))\n")
   #println("dualcenterpopn fitness = $(fitness(dualcenterpopn))\n")
-  (sOffspring_shadow, sW_shadow) = es_selection(state, model_shadow, f, dualcenterpopn, dualcenternoise, shadow = true)
+  (sOffspring, sW) = es_selection(state, model, f, dualcenterpopn, dualcenternoise, shadow = true)
   #println("sortOrder = $(sOffspring_shadow.index)")
   #println("selected fitnesses = \n $(fitness(sOffspring_shadow))")
-
-  flatten!(sW, weights(model))
 
   # fill array with :orig and :best symbols then sort them based on sortOrder and make them a population
   orig = fill(:orig, orig_λ)
@@ -130,14 +163,14 @@ function evolvepopn!(state::CMAES_State, f::RealFitness)
   all = vcat(orig, best)
   #println("Evolve_CMAES.jl::131 ->      source before sort = $(all)")
   memberz = reshape(all, (1, length(all)))
-  sPopn = SortedPopulation(memberz, SortStructure(sOffspring_shadow))
+  sPopn = SortedPopulation(memberz, SortStructure(sOffspring))
   source = vec(sPopn[:chr,:])
-  mems = deepcopy(members(sW_shadow))
+  mems = deepcopy(members(sW))
   #println("μ = $(mu(state)), λ = $(lambda(state))")
   #println("source = $(source)")
   for i=1:length(source)
       if source[i] == :best
-          mems[:,i] = (sOffspring_shadow[:chr, i] - center(model_shadow)) / sigma(model_shadow)
+          mems[:,i] = (sOffspring[:chr, i] - center(model)) / sigma(model)
       end
   end
   #println("Evolve_CMAES.jl:142 -> source = $(source)")
@@ -149,31 +182,24 @@ function evolvepopn!(state::CMAES_State, f::RealFitness)
   #println("noise = $(mems)")
   #println("max euclidian distance at -> $(argmax(map(x -> norm(mems[:,x]), 1:length(source))))")
   #println("min euclidian distance at -> $(argmin(map(x -> norm(mems[:,x]), 1:length(source))))")
-  sW_shadow = ShapedNoise(mems)
+  sW = ShapedNoise(mems)
 
-  flatten!(sW_shadow, weights(model_shadow))
+  flatten!(sW, weights(model))
   #flatten_with_σ!(sW_shadow, weights(model_shadow), model_shadow)
 
-  nModel = update(model, sW, gen)
-  nModel_shadow = update(model_shadow, sW_shadow, gen_shadow)
+  nModel_ = update(model, sW, gen)
 
-  update!(state, nModel, nModel_shadow, nOffspring, dualcenterpopn, sOffspring, sOffspring_shadow, nE, nW, dualcenternoise, sW, sW_shadow)
+  update!_(state, nModel_, dualcenterpopn, sOffspring, dualcenternoise, sW)
 
-  generatesamples_prep!(state, nModel)
-  if (any(i -> !isnan(i), nModel_shadow.C))
-      generatesamples_prep!(state, nModel_shadow, shadow = true)
+  if (any(i -> !isnan(i), nModel_.C))
+      generatesamples_prep!(state, nModel_, shadow = true)
   end
 
-  if status(state) != :found
-      found!(state, f)
-  end          # will overwrite status if found, even if the zero eigenvalue error was previously set
   if status_(state) != :found
       found!_(state,f)
   end
 
-  if status(state) == :found
-      status(state)
-  elseif status_(state) == :found
+  if status_(state) == :found
       status_(state)             # returns the status
   end
 end

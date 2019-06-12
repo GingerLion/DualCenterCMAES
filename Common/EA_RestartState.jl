@@ -54,21 +54,21 @@ function stagnationupdate!(restart::RestartState, state::State)
     if any(restart.stagnation) && any(restart.stagnation_)
       restart.shouldRestart = true
     elseif any(restart.stagnation) && !any(restart.stagnation_)
+      state.status = :stop
       state.firstRequest = :normal
+      state.stopEvals = true
     elseif any(restart.stagnation_) && !any(restart.stagnation)
+      state.status_shadow = :stop
       state.firstRequest = :dualcenter
+      state.stopEvals_ = true
     end
 
   end
 end
 
 function update!(restart::RestartState, state::State, sys::System)
-  restart.totalEvals += evalsPerGen(sys)
-  if status_(state) != :found
-      restart.totalEvals_ += evalsPerGen_(sys)
-  else
-      restart.totalEvals_ = restart.totalEvals_
-  end
+  if !stopEvals(state) restart.totalEvals += evalsPerGen(sys) end
+  if !stopEvals_(state) restart.totalEvals_ += evalsPerGen_(sys) end
   restart.bfHist[] = bestfitness(best(state))
   restart.bfHist_[] = bestfitness(best_(state))
   restart.bcHist_[] = bestchromosome(best_(state)) #note that this is a list with its own setindex! function

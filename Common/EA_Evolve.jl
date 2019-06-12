@@ -12,12 +12,14 @@ end
 
 function evolve!(state::State, f::Fitness, runInfo::Monitor, verbose::Verbose)
   if evolvable(state) || evolvable_(state)
-    evolvepopn!(state, f)
-
     if evolvable(state)
-      gtmaxevals!(state)
+        evolvepopn!(state, f)
+        gtmaxevals!(state)
     end
-
+    if evolvable_(state)
+        evolvepopn!_(state, f)
+        gtmaxevals!_(state)
+    end
     if monitorable(runInfo)        monitor!(runInfo, state, f) end
     if atlevel(verbose, RunLevel)  println(state) end
   end
@@ -38,15 +40,18 @@ function evolve!(state::State, f::Fitness, restart::RestartState;
 end
 
 function evolve!(state::State, f::Fitness, restart::RestartState, runInfo::Monitor, verbose::Verbose)
-  if evolvable(state, restart)
-    evolvepopn!(state, f)
-    update!(restart, state, system(state))
-
+  if evolvable(state, restart) || evolvable_(state, restart)
     if evolvable(state, restart)
-      gtmaxevals!(state, restart)
+        evolvepopn!(state, f)
+    end
+    if evolvable_(state, restart)
+        evolvepopn!_(state, f)
     end
 
-    if (!ignorestagnation(restart) && evolvable(state, restart))
+    update!(restart, state, system(state))
+    gtmaxevals!(state, restart)
+
+    if (!ignorestagnation(restart) && (evolvable(state, restart) || evolvable_(state, restart)))
       stagnationupdate!(restart, state)
     end
 

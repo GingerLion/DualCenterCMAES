@@ -32,6 +32,7 @@ function update_scales!(runInfo::RunInfo, source::SelectionSource, state::CMAES_
 	model = currentmodel_(state)
 	μ = mu(state)
 	w = Weights(normalize(map((i)->(log(μ+chrlength(state)) - log(i)), 1:μ), 1)) #less pressure than log(μ+0.5)
+	#w = Weights(fill(1/μ, μ))
 	orig_score = 0.0
 	best_score = 0.0
 	orig_scale = 0.0
@@ -60,6 +61,7 @@ function update_scales!(runInfo::RunInfo, source::SelectionSource, state::CMAES_
 		best_scale = 2.0
 		orig_scale = 0.0
 	end
+	#println("orig_scale = $(orig_scale), best_scale = $(best_scale)")
 
 	if (orig_scale == 2.0 || best_scale == 2.0)
 		#println("54 - RunInfo_CMAES.jl: reseting the scales!")
@@ -67,8 +69,8 @@ function update_scales!(runInfo::RunInfo, source::SelectionSource, state::CMAES_
 		best_scale!(model, 0.5)
 	else
 		#println("orig scale = $(orig_scale), best_scale = $(best_scale)")
-		orig_scale!(model, orig_scale)
-		best_scale!(model, best_scale)
+		orig_scale!(model, convert(Float64, orig_scale))
+		best_scale!(model, convert(Float64, best_scale))
 	end
 	#orig_scale!(model, 1.5)
 	#best_scale!(model, 0.5)

@@ -178,7 +178,7 @@ end
 #-------------------------
 #  CMAES_System, including CMA_ES_System and IPop_System
 
-struct CMAES_System <: System
+mutable struct CMAES_System <: System
   maxEvals::Int
   rParms::Reproduction_Parms  # constants used during  reproduction (aka Model_Parms)
   sParms::Selection_Parms     # constants used during selection
@@ -217,6 +217,8 @@ mutable struct CMAES_State <: State
    best::Tuple                  # shadowged best chromosome
    best_shadow::Tuple
    firstRequest::Symbol
+   stopEvals::Bool
+   stopEvals_::Bool
 
   function CMAES_State(model::CMAES_Model, sys::CMAES_System, f::RealFitness, runInfo = NoMonitor(), verbose = false)
     state = new()

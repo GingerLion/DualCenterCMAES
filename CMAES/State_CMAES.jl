@@ -56,6 +56,8 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 	state.best = best(state.sOffspring)
 	state.best_shadow = best(state.sOffspring_shadow)
 	state.firstRequest = :none
+	state.stopEvals = false
+	state.stopEvals_ = false
 	evolvable!(state)
 	evolvable!_(state)
 end
@@ -98,6 +100,7 @@ segmentcount(c::CMAES_State) = c.sys.sParms.segmentCount
 initializing(c::CMAES_State) = (c.gen == 0)
 pW(c::CMAES_State) = c.pW
 sW(c::CMAES_State) = c.sW
+nE(c::CMAES_State) = c.nE
 firstRequest(c::CMAES_State) = c.firstRequest
 
 #General shadowed Functions
@@ -112,6 +115,9 @@ pW_(c::CMAES_State) = c.pW_shadow
 sW_(c::CMAES_State) = c.sW_shadow
 population_shadow(c::CMAES_State) = c.sOffspring_shadow
 
+#checks to see if stopEvals/_ is true or false
+stopEvals(state::CMAES_State) = state.stopEvals
+stopEvals_(state::CMAES_State) = state.stopEvals_
 
 
 # note: currently during evolution parents are in :post while :parents holds parents of the parents

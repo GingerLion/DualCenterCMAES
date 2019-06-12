@@ -42,11 +42,18 @@ gtmaxgen!(state::State) = if gtmaxgen(state, system(state)) state.status = :max_
 
 gtmaxevals(evals::Int, sys::System) = (evals > sys.maxEvals)
 gtmaxevals(state::State) = (evals(state) > system(state).maxEvals)
-gtmaxevals!(state::State) = if gtmaxevals(state) state.status = :max_evals end
+gtmaxevals_(state::State) = (evals_(state) > system(state).maxEvals)
+gtmaxevals!(state::State) = if gtmaxevals(state) state.status = :max_evals; state.stopEvals = true end
+gtmaxevals!_(state::State) = if gtmaxevals_(state) state.status_shadow = :max_evals; state.stopEvals_ = true end
 
 function gtmaxevals!(state::State, restart::RestartState)
 	if gtmaxevals(evals(restart), system(state))
 		state.status = :max_evals
+		state.stopEvals = true
+	end
+	if gtmaxevals(evals_(restart), system(state))
+		state.status_shadow = :max_evals
+		state.stopEvals_ = true
 	end
 end
 
@@ -95,11 +102,9 @@ end
 
 function found!_(state::State, fit::Fitness)
  	if found_(state)
-		#println("Shadow found solution first! gen = $(currentgen(state)), gen_shadow = $(currentgen_(state))")
  		found_(state)
  	elseif found_(state, fit)
-		println("Shadow found solution at gen = $(currentgen(state))")
+		println("Shadow found solution at gen = $(currentgen_(state))")
 		state.status_shadow = :found
-		state.status = :found
 	end
 end
