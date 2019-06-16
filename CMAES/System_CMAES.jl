@@ -54,6 +54,7 @@ evalsPerGen_(sys::CMAES_System) = lambda(sys) + (includecenter(sys) ? 1 : 0)
 
 function runEA(sys::CMAES_System, f::RealFitness; center_init = ones(n), σ_init = 1.0,
                    monitoring = false, verbose = NotVerbose())
+  println("this run EA runs?")
   runInfo = newmonitor(monitoring, sys)
   state = CMAES_State(sys, f, center_init, σ_init, runInfo, verbose)
   returnInfo = ReturnInfo(state,runInfo)

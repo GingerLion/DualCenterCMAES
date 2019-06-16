@@ -219,20 +219,34 @@ mutable struct CMAES_State <: State
    firstRequest::Symbol
    stopEvals::Bool
    stopEvals_::Bool
+   best_overall::Tuple
+   best_overall_::Tuple
 
-  function CMAES_State(model::CMAES_Model, sys::CMAES_System, f::RealFitness, runInfo = NoMonitor(), verbose = false)
-    state = new()
-    setup!(state, model, sys, f)
-    evolve!(state, f, runInfo, verbose)
-    state
+  function CMAES_State(model::CMAES_Model, sys::CMAES_System, f::RealFitness, runInfo = NoMonitor(), verbose = false; new = true, cur_state = :no)
+    if new
+        state = new()
+        setup!(state, model, sys, f)
+        evolve!(state, f, runInfo, verbose)
+        state
+    elseif typeof(cur_state) <: State
+        setup!(cur_state, model, sys, f, new = false)
+        evolve!(cur_state, f, runInfo, verbose)
+        cur_state
+    end
   end
 
   function CMAES_State(model::CMAES_Model, sys::CMAES_System, f::RealFitness, restart::RestartState,
-                       runInfo = NoMonitor(), verbose = false)
-    state = new()
-    setup!(state, model, sys, f)
-    evolve!(state, f, restart, runInfo, verbose)
-    state
+                       runInfo = NoMonitor(), verbose = false; new = true, cur_state = :no)
+    if new
+        state = new()
+        setup!(state, model, sys, f)
+        evolve!(state, f, restart, runInfo, verbose)
+        state
+    elseif typeof(cur_state) <: State
+        setup!(cur_state, model, sys, f, new = false)
+        evolve!(cur_state, f, restart, runInfo, verbose)
+        cur_state
+    end
   end
 end
 

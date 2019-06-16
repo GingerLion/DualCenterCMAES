@@ -67,14 +67,25 @@ direction(state::State) = direction(population(state))
 best!(state::State) = (state.best = best(population(state)))
 best(state::State) = state.best
 best_(state::State) = state.best_shadow
+best_overall(state::State) = state.best_overall
+best_overall_(state::State) = state.best_overall_
 bestchromosome(state::State) = bestchromosome(best(state))
 bestchromosome_(state::State) = bestchromosome(best_(state))
+bestchroverall(state::State) = bestchromosome(best_overall(state))
+bestchroverall_(state::State) = bestchromosome(best_overall_(state))
 bestfitness(state::State) = bestfitness(best(state))
 bestfitness_(state::State) = bestfitness(best_(state))
+bestfitoverall(state::State) = bestfitness(best_overall(state))
+bestfitoverall_(state::State) = bestfitness(best_overall_(state))
+
 better(state1::State, state2::Union{State,Tuple}) = (maximizing(state1) ? bestfitness(state1) > bestfitness(state2)
 																 			  : bestfitness(state1) < bestfitness(state2))
 better_(state1::State, state2::Union{State,Tuple}) = (maximizing(state1) ? bestfitness_(state1) > bestfitness(state2)
 																			  : bestfitness_(state1) < bestfitness(state2))
+better_overall(state1::State, state2::Union{State, Tuple}) = (maximizing(state1) ? bestfitoverall(state1) > bestfitness(state2)
+																				   : bestfitoverall(state1) < bestfitness(state2))
+better_overall_(state1::State, state2::Union{State, Tuple}) = (maximizing(state1) ? bestfitoverall_(state1) > bestfitness(state2)
+																					: bestfitoverall_(state1) < bestfitness(state2))
 better(member::Tuple, state::State) = (maximizing(state) ? bestfitness(member) > bestfitness(state)
 															: bestfitness(member) < bestfitness(state))
 
@@ -86,8 +97,31 @@ worse(member::Tuple, state::State) = (maximizing(state) ? bestfitness(member) < 
 same(state1::State, state2::Union{State,Tuple}) = bestfitness(state1) == bestfitness(state2)
 same(member::Tuple, state::State) = bestfitness(member) == bestfitness(state)
 
-found(state::State, fit::Fitness) = abs(bestfitness(state) - fit.optimalValue) <= fit.epsilon
-found_(state::State, fit::Fitness) = abs(bestfitness_(state) - fit.optimalValue) <= fit.epsilon
+function found(state::State, fit::Fitness)
+	if found_(state)
+	 	abs(bestfitness(state) - fit.optimalValue) <= fit.epsilon && !better_overall(state, best_overall_(state))
+	else
+		abs(bestfitness(state) - fit.optimalValue) <= fit.epsilon
+	end
+end
+function found_(state::State, fit::Fitness)
+	if found(state)
+		abs(bestfitness_(state) - fit.optimalValue) <= fit.epsilon && !better_overall_(state, best_overall(state))
+	else
+		abs(bestfitness_(state) - fit.optimalValue) <= fit.epsilon
+	end
+end
+
+function hastocatchup(state::State)
+	if found(state) && (status_(state) == :stop || status_(state) == :evolve) && !better_overall(state, best_overall_(state))
+		return :dualcenter
+	elseif found_(state) && (status(state) == :stop || status_(state) == :evolve) && !better_overall_(state, best_overall(state))
+		return :normal
+	else
+		return :none
+	end
+end
+
 found(state::State) = (state.status == :found)
 found_(state::State) = (state.status_shadow == :found)
 
@@ -97,6 +131,7 @@ function found!(state::State, fit::Fitness)
  	elseif found(state, fit)
 		println("Normal found solution at gen = $(currentgen(state))")
  		state.status = :found
+		state.stopEvals = true
 	end
 end
 
@@ -106,5 +141,6 @@ function found!_(state::State, fit::Fitness)
  	elseif found_(state, fit)
 		println("Shadow found solution at gen = $(currentgen_(state))")
 		state.status_shadow = :found
+		state.stopEvals_ = true
 	end
 end

@@ -23,11 +23,7 @@ function evolve!(state::State, f::Fitness, runInfo::Monitor, verbose::Verbose)
     if monitorable(runInfo)        monitor!(runInfo, state, f) end
     if atlevel(verbose, RunLevel)  println(state) end
   end
-  if status(state) == :found
-      status(state)
-  elseif status_(state) == :found
-      status_(state)
-  end
+  status(state)
 end
 
 #-----------------------------------------------------------------------
@@ -51,7 +47,7 @@ function evolve!(state::State, f::Fitness, restart::RestartState, runInfo::Monit
     update!(restart, state, system(state))
     gtmaxevals!(state, restart)
 
-    if (!ignorestagnation(restart) && (evolvable(state, restart) || evolvable_(state, restart)))
+    if (!ignorestagnation(restart) && ((evolvable(state, restart) || status(state) == :stop) || (evolvable_(state, restart) || status_(state) == :stop)))
       stagnationupdate!(restart, state)
     end
 

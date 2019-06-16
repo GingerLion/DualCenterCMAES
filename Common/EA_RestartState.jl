@@ -41,7 +41,7 @@ shouldrestart(restart::RestartState) = restart.shouldRestart
 
 
 function stagnationupdate!(restart::RestartState, state::State)
-  if (currentgen(state) > 0)
+  if (currentgen(state) > 0) || (currentgen_(state) > 0)
   	restart.stagnation = stagnationcriteria(state, restart)
     restart.stagnation_ = stagnationcriteria_(state, restart)
 
@@ -52,7 +52,13 @@ function stagnationupdate!(restart::RestartState, state::State)
       state.firstRequest = :dualcenter
       restart.shouldRestart = true=#
     if any(restart.stagnation) && any(restart.stagnation_)
-      restart.shouldRestart = true
+        restart.shouldRestart = true
+    elseif found(state) && (any(restart.stagnation_) || status_(state) == :stop)
+        restart.shouldRestart = true
+    elseif found_(state) && (any(restart.stagnation) || status(state) == :stop)
+        restart.shouldRestart = true
+    elseif status(state) == :stop && status_(state) == :stop
+        restart.shouldRestart = true
     elseif any(restart.stagnation) && !any(restart.stagnation_)
       state.status = :stop
       state.firstRequest = :normal

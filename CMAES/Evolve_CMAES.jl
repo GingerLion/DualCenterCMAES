@@ -55,6 +55,23 @@ function updatebest!(state::CMAES_State)
     else
         state.best = best(state.sOffspring)
         state.best_shadow = best(state.sOffspring_shadow)
+        if state.gen == 1
+            state.best_overall = state.best
+        end
+        if state.gen_shadow == 1
+            state.best_overall_ = state.best_shadow
+        end
+        if state.gen > 1
+            if better_overall(state, state.best)
+                state.best_overall = state.best
+            end
+        end
+        if state.gen_shadow > 1
+            if better_overall_(state, state.best_shadow)
+                state.best_overall_ = state.best_shadow
+            end
+        end
+
         #println("bestfit = $(bestfitness(state.sOffspring)) \n bestfit_shadow = $(bestfitness(state.sOffspring_shadow))")
     end
 end

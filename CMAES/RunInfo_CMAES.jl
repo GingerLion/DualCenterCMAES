@@ -134,7 +134,13 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   runInfo[:σ_]			= sigma_(state)
   runInfo[:gen]			= gen(state)
   runInfo[:l_evals] 	= evals(state)
-
+  try
+	  (!stopEvals(state)) ? runInfo[:total_evals] = first(runInfo[:total_evals]) + evalsPerGen(system(state)) : runInfo[:total_evals] = first(runInfo[:total_evals])
+  catch e
+	  if isa(e, KeyError) println("KeyError by normal") end
+	  runInfo[:total_evals] = 0
+  end
+  #println("normal evals = $(first(runInfo[:total_evals]))")
   # general information - shadowged
   runInfo[:best_shadow] 	= best_(state)
   runInfo[:covar_shadow]   = covar_(state)
@@ -142,7 +148,13 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   runInfo[:σ_shadow]		= sigma_(state)
   runInfo[:gen_shadow]		= gen_(state)
   runInfo[:l_evals_shadow]   = evals_(state)
-
+  try
+	  (!stopEvals_(state)) ? runInfo[:total_evals_] = first(runInfo[:total_evals_]) + evalsPerGen_(system(state)) : runInfo[:total_evals_] = first(runInfo[:total_evals_])
+  catch e
+	  if isa(e, KeyError)	println("KeyError by dualcenter") end
+	  runInfo[:total_evals_] = 0
+  end
+  #println("dualcenter evals = $(first(runInfo[:total_evals_]))")
   # system state information
   runInfo[:center]  	= (state_center[:chr, 1], state_center[:fit, 1])
   runInfo[:fitsummary]	= fitsummary(selected, runInfo, w)

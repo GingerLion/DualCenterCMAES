@@ -33,33 +33,46 @@
 #	firstRequest::Symbol		# records the first system that wishes to restart
 #---------------------------------------------------------------------------------------------------------------------------------
 
-function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::RealFitness)
-	(n, λ, μ, direction) = (sys.rParms.N, sys.sParms.λ, sys.sParms.μ, sys.sParms.direction)
-	state.nModel = model
-	state.nModel_shadow = deepcopy(model)
-	state.sys = sys
-	state.gen = 0
-	state.gen_shadow = state.gen
-	state.evalCount = 0
-	state.evalCount_shadow = 0
-	state.nE = ZeroNoise(SphericalNoise, n, λ)
-	state.nW = ZeroNoise(ShapedNoise, n, λ)
-	state.nW_shadow = deepcopy(state.nW)
-	state.sW = ZeroNoise(ShapedNoise, n, μ)
-	state.sW_shadow = deepcopy(state.sW)
-	state.pW = deepcopy(state.nW)
-	state.pW_shadow = deepcopy(state.pW)
-	state.sOffspring = SortedPopulation(RegularPopulation(center(model), μ, f.objFn; direction = direction))
-	state.sOffspring_shadow = deepcopy(state.sOffspring)
-	state.pOffspring = deepcopy(state.sOffspring)
-	state.pOffspring_shadow = deepcopy(state.pOffspring)
-	state.best = best(state.sOffspring)
-	state.best_shadow = best(state.sOffspring_shadow)
-	state.firstRequest = :none
-	state.stopEvals = false
-	state.stopEvals_ = false
-	evolvable!(state)
-	evolvable!_(state)
+function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::RealFitness; new = true)
+	if new
+		(n, λ, μ, direction) = (sys.rParms.N, sys.sParms.λ, sys.sParms.μ, sys.sParms.direction)
+		state.nModel = model
+		state.nModel_shadow = deepcopy(model)
+		state.sys = sys
+		state.gen = 0
+		state.gen_shadow = state.gen
+		state.evalCount = 0
+		state.evalCount_shadow = 0
+		state.nE = ZeroNoise(SphericalNoise, n, λ)
+		state.nW = ZeroNoise(ShapedNoise, n, λ)
+		state.nW_shadow = deepcopy(state.nW)
+		state.sW = ZeroNoise(ShapedNoise, n, μ)
+		state.sW_shadow = deepcopy(state.sW)
+		state.pW = deepcopy(state.nW)
+		state.pW_shadow = deepcopy(state.pW)
+		state.sOffspring = SortedPopulation(RegularPopulation(center(model), μ, f.objFn; direction = direction))
+		state.sOffspring_shadow = deepcopy(state.sOffspring)
+		state.pOffspring = deepcopy(state.sOffspring)
+		state.pOffspring_shadow = deepcopy(state.pOffspring)
+		state.best = best(state.sOffspring)
+		state.best_shadow = best(state.sOffspring_shadow)
+		state.firstRequest = :none
+		state.stopEvals = false
+		state.stopEvals_ = false
+		evolvable!(state)
+		evolvable!_(state)
+	else
+		if hastocatchup(state) == :dualcenter
+			evolvable!_(state)
+			state.stopEvals_ = false
+			println("state.status = $(status(state)) & state.status_shadow = :evolve")
+		end
+		if hastocatchup(state) == :normal
+			evolvable!(state)
+			state.stopEvals = false
+			println("state.status = :evolve & state.status_shadow = $(status_(state))")
+		end
+	end
 end
 
 
@@ -68,15 +81,15 @@ end
 
 function CMAES_State(sys::CMAES_System, f::RealFitness,
 	                 center_init::Vector, σ_init::Float64,
-	                 runInfo::Monitor, verbose::Verbose = NotVerbose())
+	                 runInfo::Monitor, verbose::Verbose = NotVerbose(); new = true, cur_state = :no)
   model = CMAES_Model(sys.rParms, copy(center_init), σ_init)
-  CMAES_State(model, sys, f, runInfo, verbose)
+  CMAES_State(model, sys, f, runInfo, verbose, new = new, cur_state = cur_state)
 end
 
 function CMAES_State(sys::CMAES_System, f::RealFitness, restart::RestartState,
-                   runInfo::Monitor, verbose::Verbose = NotVerbose())
+                   runInfo::Monitor, verbose::Verbose = NotVerbose(); new = true, cur_state = :no)
   model = CMAES_Model(sys.rParms, copy(initcenter(restart)), initσ(restart))
-  CMAES_State(model, sys, f, restart, runInfo, verbose)
+  CMAES_State(model, sys, f, restart, runInfo, verbose, new = new, cur_state = cur_state)
 end
 
 
