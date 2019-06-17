@@ -137,7 +137,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   try
 	  (!stopEvals(state)) ? runInfo[:total_evals] = first(runInfo[:total_evals]) + evalsPerGen(system(state)) : runInfo[:total_evals] = first(runInfo[:total_evals])
   catch e
-	  if isa(e, KeyError) println("KeyError by normal") end
+	  #if isa(e, KeyError) println("KeyError by normal") end
 	  runInfo[:total_evals] = 0
   end
   #println("normal evals = $(first(runInfo[:total_evals]))")
@@ -151,7 +151,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   try
 	  (!stopEvals_(state)) ? runInfo[:total_evals_] = first(runInfo[:total_evals_]) + evalsPerGen_(system(state)) : runInfo[:total_evals_] = first(runInfo[:total_evals_])
   catch e
-	  if isa(e, KeyError)	println("KeyError by dualcenter") end
+	  #if isa(e, KeyError)	println("KeyError by dualcenter") end
 	  runInfo[:total_evals_] = 0
   end
   #println("dualcenter evals = $(first(runInfo[:total_evals_]))")
