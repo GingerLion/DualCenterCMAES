@@ -66,8 +66,15 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 			evolvable!_(state)
 			state.stopEvals_ = false
 			println("state.status = $(status(state)) & state.status_shadow = :evolve")
-		end
-		if hastocatchup(state) == :normal
+		elseif hastocatchup(state) == :normal
+			evolvable!(state)
+			state.stopEvals = false
+			println("state.status = :evolve & state.status_shadow = $(status_(state))")
+		elseif maxContinueSystem(state) == :dualcenter
+			evolvable!_(state)
+			state.stopEvals_ = false
+			println("state.status = $(status(state)) & state.status_shadow = :evolve")
+		elseif maxContinueSystem(state) == :normal
 			evolvable!(state)
 			state.stopEvals = false
 			println("state.status = :evolve & state.status_shadow = $(status_(state))")

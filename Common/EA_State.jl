@@ -115,12 +115,25 @@ end
 function hastocatchup(state::State)
 	if found(state) && (status_(state) == :stop || status_(state) == :evolve) && !better_overall(state, best_overall_(state))
 		return :dualcenter
-	elseif found_(state) && (status(state) == :stop || status_(state) == :evolve) && !better_overall_(state, best_overall(state))
+	elseif found_(state) && (status(state) == :stop || status(state) == :evolve) && !better_overall_(state, best_overall(state))
 		return :normal
 	else
 		return :none
 	end
 end
+
+#decides which system shouuld continue to evolve when there is no found and a max_evals
+function maxContinueSystem(state::State)
+	if (status(state) == :stop && status_(state) == :max_evals)
+		return :normal
+	elseif (status(state) == :max_evals && status_(state) == :stop)
+		return :dualcenter
+	else
+		return :none
+	end
+end
+#returns true if one system is max_evals and one is stop
+isMaxAndStop(state) = ((status(state) == :stop && status_(state) == :max_evals) || (status(state) == :max_evals && status_(state) == :stop)) ? true : false
 
 found(state::State) = (state.status == :found)
 found_(state::State) = (state.status_shadow == :found)

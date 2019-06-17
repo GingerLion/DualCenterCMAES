@@ -16,7 +16,7 @@ function restarting!(state::State, restart::RestartState, f::Fitness, runInfo::M
   sys = system(state)
   sys = typeof(sys)(sys, f, restart, verbose)
   update!(runInfo, sys)
-  if hastocatchup(state) == :dualcenter || hastocatchup(state) == :normal
+  if hastocatchup(state) == :dualcenter || hastocatchup(state) == :normal || isMaxAndStop(state)
       typeof(state)(sys, f, restart, runInfo, verbose, new = false, cur_state = deepcopy(state))
   else
       typeof(state)(sys, f, restart, runInfo, verbose)
@@ -25,7 +25,7 @@ end
 
 function runEA(state::State, restart::RestartState, f::Fitness,
                runInfo::Monitor, returnInfo::ReReturnInfo, verbose::Verbose)
-  while (evolvable(state, restart) || hastocatchup(state) == :normal || evolvable_(state, restart) || hastocatchup(state) == :dualcenter) || (status(state) == :stop && status_(state) == :stop)
+  while (evolvable(state, restart) || hastocatchup(state) == :normal || evolvable_(state, restart) || hastocatchup(state) == :dualcenter || isMaxAndStop(state)) || (status(state) == :stop && status_(state) == :stop)
     if shouldrestart(restart)
       update!(returnInfo, state, restart) #main issue is that this is only run theres a restart, and this the only place to correctly reset the system maxEvals
       state = restarting!(state, restart, f, runInfo, verbose)

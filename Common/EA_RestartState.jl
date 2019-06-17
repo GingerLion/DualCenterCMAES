@@ -59,6 +59,10 @@ function stagnationupdate!(restart::RestartState, state::State)
         restart.shouldRestart = true
     elseif status(state) == :stop && status_(state) == :stop
         restart.shouldRestart = true
+    elseif status(state) == :stop && status_(state) == :max_evals
+        restart.shouldRestart = true
+    elseif status_(state) == :stop && status(state) == :max_evals
+        restart.shouldRestart = true
     elseif any(restart.stagnation) && !any(restart.stagnation_)
       state.status = :stop
       state.firstRequest = :normal
