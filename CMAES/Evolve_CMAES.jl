@@ -140,9 +140,13 @@ function evolvepopn!_(state::CMAES_State, f::RealFitness)
   (gen, model) = evolve_parms_(state) # do separate functions for this
 
   #generate shadow samples from center & and best chromosome
-  #put this in other function (nE will be passed as function parameter or retrieved through the state
-  (nOffspring, nOffspring_, nE, nW, nW_) = generatesamples_(model, state.nE)   #generate samples based on best solution
-
+  #put this in other function (nE will be passed as function parameter or retrieved through the state)
+  #if the other system isn't evolving then make it's own random noise
+  if status(state) == :evolve
+      (nOffspring, nOffspring_, nE, nW, nW_) = generatesamples_(model, state.nE)   #generate samples based on best solution
+  else
+      (nOffspring, nOffspring_, nE, nW, nW_) = generatesamples_(model, SphericalNoise(chrlength(state), lambda(system(state))))
+  end
   orig_λ = 0
   best_λ = 0
   (typeof(nW) <: Noise) ? orig_λ = popnsize(nW) : orig_λ = 0
