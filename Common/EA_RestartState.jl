@@ -44,33 +44,39 @@ function stagnationupdate!(restart::RestartState, state::State)
   if (currentgen(state) > 0) || (currentgen_(state) > 0)
   	restart.stagnation = stagnationcriteria(state, restart)
     restart.stagnation_ = stagnationcriteria_(state, restart)
+    if found(state) restart.stagnation = fill(false, length(restart.stagnation)) end
+    if found_(state) restart.stagnation_ = fill(false, length(restart.stagnation_)) end
 
-    #=if equalfunvalhist(state, restart)
-      state.firstRequest = :normal
-      restart.shouldRestart = true
-    elseif equalfunvalhist_(state, restart)
-      state.firstRequest = :dualcenter
-      restart.shouldRestart = true=#
     if any(restart.stagnation) && any(restart.stagnation_)
         restart.shouldRestart = true
+        #println("case 1 shouldRestart")
     elseif found(state) && (any(restart.stagnation_) || status_(state) == :stop)
         restart.shouldRestart = true
+        #println("case 2 shouldRestart")
     elseif found_(state) && (any(restart.stagnation) || status(state) == :stop)
         restart.shouldRestart = true
+        #println("case 3 shouldRestart")
     elseif status(state) == :stop && status_(state) == :stop
         restart.shouldRestart = true
+        #println("case 4 shouldRestart")
     elseif status(state) == :stop && status_(state) == :max_evals
         restart.shouldRestart = true
+        #println("case 5 shouldRestart")
     elseif status_(state) == :stop && status(state) == :max_evals
         restart.shouldRestart = true
+        #println("case 6 shouldRestart")
     elseif any(restart.stagnation) && !any(restart.stagnation_)
       state.status = :stop
+      if status_(state) == :stop restart.shouldRestart = true end
       state.firstRequest = :normal
       state.stopEvals = true
+      #println("case 7")
     elseif any(restart.stagnation_) && !any(restart.stagnation)
       state.status_shadow = :stop
+      if status(state) == :stop restart.shouldRestart = true end
       state.firstRequest = :dualcenter
       state.stopEvals_ = true
+      #println("case 8")
     end
 
   end

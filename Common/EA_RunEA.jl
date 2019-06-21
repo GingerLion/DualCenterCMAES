@@ -27,7 +27,8 @@ function runEA(state::State, restart::RestartState, f::Fitness,
                runInfo::Monitor, returnInfo::ReReturnInfo, verbose::Verbose)
   while (evolvable(state, restart) || hastocatchup(state) == :normal || evolvable_(state, restart) || hastocatchup(state) == :dualcenter || isMaxAndStop(state)) || (status(state) == :stop && status_(state) == :stop)
     if shouldrestart(restart)
-      update!(returnInfo, state, restart) #main issue is that this is only run theres a restart, and this the only place to correctly reset the system maxEvals
+      #println("restarting...")
+      update!(returnInfo, state, restart)
       state = restarting!(state, restart, f, runInfo, verbose)
     end
 
@@ -37,9 +38,12 @@ function runEA(state::State, restart::RestartState, f::Fitness,
     elseif found_(state) && !found(state)
         system(state).maxEvals = first(runInfo[:total_evals_])
     end
+    #println("runEA: status = $(status(state)), status_shadow = $(status_(state)), maxEvals = $(system(state).maxEvals)")
     evolve!(state, f, restart, runInfo, verbose)
   end
-
+  if (status(state) == :stop && status_(state) == :stop) println("both systems = :stop") end
+  #println("hastocatchup = $(hastocatchup(state))")
+  #println("bestfitOverall = $(bestfitoverall(state)) \n bestfitOverall_shadow = $(bestfitoverall_(state))")
   decgen!(state)
   decgen!_(state)
   update!(returnInfo, state, restart)

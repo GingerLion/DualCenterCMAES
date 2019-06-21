@@ -36,7 +36,7 @@ function evolve!(state::State, f::Fitness, restart::RestartState;
 end
 
 function evolve!(state::State, f::Fitness, restart::RestartState, runInfo::Monitor, verbose::Verbose)
-  if evolvable(state, restart) || evolvable_(state, restart)
+  if (evolvable(state, restart) || status(state) == :stop) || (evolvable_(state, restart) || status_(state) == :stop)
     if evolvable(state, restart)
         evolvepopn!(state, f)
     end
@@ -55,6 +55,5 @@ function evolve!(state::State, f::Fitness, restart::RestartState, runInfo::Monit
     if monitorable(runInfo)        monitor!(runInfo, state, restart, f) end
     if atlevel(verbose, RunLevel)  println(state) end
   end
-
   status(state)
 end

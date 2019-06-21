@@ -11,8 +11,9 @@ struct NotVerbose <: Verbose end
 isverbose(v::Verbose) = true
 isverbose(nv::NotVerbose) = false
 
-atlevel(verbose::Verbose, level::Type) = (supertype(level) <: supertype(typeof(verbose)))
-
+function atlevel(verbose::Verbose, level::Type)
+	(supertype(level) <: supertype(typeof(verbose)))
+end
 #-----------------------------------------------
 #  default EA println() routines used for verbose mode
 

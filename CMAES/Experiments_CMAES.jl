@@ -8,13 +8,14 @@ function rand_shell(center::Vector; radius = sqrt(length(center)))
 end
 
 # Example of running mulitple experiments and writing ReturnInfo
-function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, monitored = false)
+# IMPORTANT: never turn monitored to false. The dualcenter algorithm now uses the monitor data in it's model
+function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, monitored = true)
 	prefixNames = ["fn", "dim", "elitism", "ctr", "run"]
 	firstTime = true
-	for n = [25]
+	for n = [5,10,25,50]
 		testFn = generatetests(n, 0.0; ε = 1.0e-5)
 		#fn_name = [:rastrigin]
-		fn_name  = [:rastrigin,:levy,:elliptical,:ackley,:griewank]
+		fn_name  = [:griewank]
 		for name in fn_name
 			f = testFn[name]
 			r_UnitShell = rand_shell(optimum(f))
@@ -30,13 +31,13 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 
 					if summary
 						write_final(ipop; prefixNames = prefixNames, prefixValues = prefixValues,
-						            	  initialize = firstTime, path = outputPath, fileName = "ipop+_final$exprName")
+						            	  initialize = firstTime, path = outputPath, fileName = "griwank_exp1_summary$exprName")
 					end
 
-					if monitored
+					#=if monitored
 						write_run(ipop, sys, f; prefixNames = prefixNames, prefixValues = prefixValues,
-					   			    	     	initialize = firstTime, path = outputPath, fileName = "ipop+_run$exprName", sep = ",")
-					end
+					   			    	     	initialize = firstTime, path = outputPath, fileName = "griewank_exp1_run$exprName", sep = ",")
+					end=#
 
 					firstTime = false
 				end
@@ -46,4 +47,4 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 end
 
 expr_path = "$(base_path)/Experiments"
-runexpr("#dual-center-shadowing", reps = 5, outputPath = expr_path, monitored = true)
+runexpr("#dual-center", reps = 30, outputPath = expr_path, monitored = true)

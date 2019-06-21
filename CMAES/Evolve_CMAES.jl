@@ -62,23 +62,21 @@ function updatebest!(state::CMAES_State)
             state.best_overall_ = state.best_shadow
         end
         if state.gen > 1
-            if better_overall(state, state.best)
+            if !better_overall(state, state.best)
                 state.best_overall = state.best
             end
         end
         if state.gen_shadow > 1
-            if better_overall_(state, state.best_shadow)
+            if !better_overall_(state, state.best_shadow)
                 state.best_overall_ = state.best_shadow
             end
         end
-
-        #println("bestfit = $(bestfitness(state.sOffspring)) \n bestfit_shadow = $(bestfitness(state.sOffspring_shadow))")
     end
 end
 
 function updategen!(state::CMAES_State)
-  if !stopEvals(state) state.evalCount += evalsPerGen(system(state)); state.gen +=  1 end
-  if !stopEvals_(state) state.evalCount_shadow += evalsPerGen_(system(state)); state.gen_shadow += 1 end
+  if status(state) == :evolve state.evalCount += evalsPerGen(system(state)); state.gen +=  1 end
+  if status_(state) == :evolve state.evalCount_shadow += evalsPerGen_(system(state)); state.gen_shadow += 1 end
 end
 
 function update!(state::CMAES_State, model::CMAES_Model,

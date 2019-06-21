@@ -52,6 +52,8 @@ popnsize(sys::CMAES_System) = (mu(sys), lambda(sys))
 evalsPerGen(sys::CMAES_System) = lambda(sys) + (includecenter(sys) ? 1 : 0)
 evalsPerGen_(sys::CMAES_System) = lambda(sys) + (includecenter(sys) ? 1 : 0)
 
+resetMaxEvals!(sys::CMAES_System, maxEvals::Int64) = sys.maxEvals = maxEvals
+
 function runEA(sys::CMAES_System, f::RealFitness; center_init = ones(n), σ_init = 1.0,
                    monitoring = false, verbose = NotVerbose())
   println("this run EA runs?")
@@ -63,10 +65,13 @@ end
 
 function runEA(sys::CMAES_System, rsys::CMAES_RestartBase, f::RealFitness; center_init = ones(n), σ_init = 1.0,
                    monitoring = false, verbose = NotVerbose())
+  max_evals = deepcopy(sys.maxEvals)
   runInfo = newmonitor(monitoring, sys)
   state = CMAES_State(sys, f, center_init, σ_init, runInfo, verbose)
   returnInfo = ReReturnInfo(state, runInfo)
   rsys = CMAES_RestartFull(rsys, state, center_init, σ_init)
   restart = RestartState(rsys, state)
-  runEA(state, restart, f, runInfo, returnInfo, verbose)
+  ea = runEA(state, restart, f, runInfo, returnInfo, verbose)
+  resetMaxEvals!(sys, max_evals)
+  ea
 end
