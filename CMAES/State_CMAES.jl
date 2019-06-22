@@ -71,6 +71,7 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 			evolvable!_(state)
 			state.stopEvals_ = false
 			state.nModel_shadow = model
+			state.nModel_shadow.parms = Model_Parms(n, f; μ = μ, λ = λ)
 			state.gen_shadow = 0
 			state.evalCount_shadow = 0
 			state.nW_shadow = ZeroNoise(ShapedNoise, n, λ)
@@ -83,6 +84,7 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 			evolvable!(state)
 			state.stopEvals = false
 			state.nModel = model
+			state.nModel.parms = Model_Parms(n, f; μ = μ, λ = λ)
 			state.gen = 0
 			state.evalCount = 0
 			state.nW = ZeroNoise(ShapedNoise, n, λ)
@@ -96,6 +98,7 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 			evolvable!_(state)
 			state.stopEvals_ = false
 			state.nModel_shadow = model
+			state.nModel_shadow.parms = Model_Parms(n, f; μ = μ, λ = λ)
 			state.gen_shadow = 0
 			state.evalCount_shadow = 0
 			state.nW_shadow = ZeroNoise(ShapedNoise, n, λ)
@@ -108,6 +111,7 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 			evolvable!(state)
 			state.stopEvals = false
 			state.nModel = model
+			state.nModel.parms = Model_Parms(n, f; μ = μ, λ = λ)
 			state.gen = 0
 			state.evalCount = 0
 			state.nW = ZeroNoise(ShapedNoise, n, λ)
@@ -163,7 +167,7 @@ firstRequest(c::CMAES_State) = c.firstRequest
 
 #General shadowed Functions
 currentmodel_(c::CMAES_State) = c.nModel_shadow
-#mu_(c::CMAES_State) = c.nModel_shadow.parms.μ
+mu_(c::CMAES_State) = c.nModel_shadow.parms.μ
 #lambda_(c::CMAES_State) = c.nModel_shadow.parms.λ
 sigma_(c::CMAES_State) = c.nModel_shadow.σ
 center_(c::CMAES_State) = c.nModel_shadow.center
