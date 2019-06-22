@@ -133,7 +133,7 @@ function maxContinueSystem(state::State)
 	end
 end
 #returns true if one system is max_evals and one is stop
-isMaxAndStop(state) = ((status(state) == :stop && status_(state) == :max_evals) || (status(state) == :max_evals && status_(state) == :stop)) ? true : false
+isMaxAndStop(state::State) = ((status(state) == :stop && status_(state) == :max_evals) || (status(state) == :max_evals && status_(state) == :stop)) ? true : false
 
 found(state::State) = (state.status == :found)
 found_(state::State) = (state.status_shadow == :found)

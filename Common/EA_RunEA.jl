@@ -16,6 +16,7 @@ function restarting!(state::State, restart::RestartState, f::Fitness, runInfo::M
   sys = system(state)
   sys = typeof(sys)(sys, f, restart, verbose)
   update!(runInfo, sys)
+
   if hastocatchup(state) == :dualcenter || hastocatchup(state) == :normal || isMaxAndStop(state)
       typeof(state)(sys, f, restart, runInfo, verbose, new = false, cur_state = deepcopy(state))
   else
@@ -28,6 +29,8 @@ function runEA(state::State, restart::RestartState, f::Fitness,
   while (evolvable(state, restart) || hastocatchup(state) == :normal || evolvable_(state, restart) || hastocatchup(state) == :dualcenter || isMaxAndStop(state)) || (status(state) == :stop && status_(state) == :stop)
     if shouldrestart(restart)
       #println("restarting...")
+      #if (status(state) == :stop && status_(state) == :stop) println("both systems = :stop") end
+      println("state = $(status(state)), state_ = $(status_(state))")
       update!(returnInfo, state, restart)
       state = restarting!(state, restart, f, runInfo, verbose)
     end
@@ -41,7 +44,6 @@ function runEA(state::State, restart::RestartState, f::Fitness,
     #println("runEA: status = $(status(state)), status_shadow = $(status_(state)), maxEvals = $(system(state).maxEvals)")
     evolve!(state, f, restart, runInfo, verbose)
   end
-  if (status(state) == :stop && status_(state) == :stop) println("both systems = :stop") end
   #println("hastocatchup = $(hastocatchup(state))")
   #println("bestfitOverall = $(bestfitoverall(state)) \n bestfitOverall_shadow = $(bestfitoverall_(state))")
   decgen!(state)
