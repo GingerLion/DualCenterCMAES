@@ -62,23 +62,60 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 		evolvable!(state)
 		evolvable!_(state)
 	else
+
+		state.sys = sys
+		(n, λ, μ, direction) = (sys.rParms.N, sys.sParms.λ, sys.sParms.μ, sys.sParms.direction)
+		state.nE = ZeroNoise(SphericalNoise, n, λ)
+
 		if hastocatchup(state) == :dualcenter
 			evolvable!_(state)
 			state.stopEvals_ = false
-			println("state.status = $(status(state)) & state.status_shadow = :evolve")
+			state.nModel_shadow = model
+			state.gen_shadow = 0
+			state.evalCount_shadow = 0
+			state.nW_shadow = ZeroNoise(ShapedNoise, n, λ)
+			state.sW_shadow = ZeroNoise(ShapedNoise, n, μ)
+			state.pW_shadow = ZeroNoise(ShapedNoise, n, μ)
+			state.sOffspring_shadow = SortedPopulation(RegularPopulation(center_(state), μ, f.objFn; direction = direction))
+			state.pOffspring_shadow = deepcopy(state.sOffspring_shadow)
+			println("state.status = $(status(state)) & state.status_shadow = $(status_(state))")
 		elseif hastocatchup(state) == :normal
 			evolvable!(state)
 			state.stopEvals = false
-			println("state.status = :evolve & state.status_shadow = $(status_(state))")
+			state.nModel = model
+			state.gen = 0
+			state.evalCount = 0
+			state.nW = ZeroNoise(ShapedNoise, n, λ)
+			state.sW = ZeroNoise(ShapedNoise, n, μ)
+			state.pW = ZeroNoise(ShapedNoise, n, μ)
+			state.sOffspring = SortedPopulation(RegularPopulation(center(state), μ, f.objFn; direction = direction))
+			state.pOffspring = deepcopy(state.sOffspring)
+			println("state.status = $(status(state)) & state.status_shadow = $(status_(state))")
 		end
 		if maxContinueSystem(state) == :dualcenter
 			evolvable!_(state)
 			state.stopEvals_ = false
-			println("state.status = $(status(state)) & state.status_shadow = :evolve")
+			state.nModel_shadow = model
+			state.gen_shadow = 0
+			state.evalCount_shadow = 0
+			state.nW_shadow = ZeroNoise(ShapedNoise, n, λ)
+			state.sW_shadow = ZeroNoise(ShapedNoise, n, μ)
+			state.pW_shadow = ZeroNoise(ShapedNoise, n, μ)
+			state.sOffspring_shadow = SortedPopulation(RegularPopulation(center_(state), μ, f.objFn; direction = direction))
+			state.pOffspring_shadow = deepcopy(state.sOffspring_shadow)
+			println("state.status = $(status(state)) & state.status_shadow = $(status_(state))")
 		elseif maxContinueSystem(state) == :normal
 			evolvable!(state)
 			state.stopEvals = false
-			println("state.status = :evolve & state.status_shadow = $(status_(state))")
+			state.nModel = model
+			state.gen = 0
+			state.evalCount = 0
+			state.nW = ZeroNoise(ShapedNoise, n, λ)
+			state.sW = ZeroNoise(ShapedNoise, n, μ)
+			state.pW = ZeroNoise(ShapedNoise, n, μ)
+			state.sOffspring = SortedPopulation(RegularPopulation(center(state), μ, f.objFn; direction = direction))
+			state.pOffspring = deepcopy(state.sOffspring)
+			println("state.status = $(status(state)) & state.status_shadow = $(status_(state))")
 		end
 	end
 end
