@@ -26,11 +26,13 @@ function update!(runInfo::RunInfo, sys::CMAES_System)
     runInfo.allSourceValues = AllSourceParms(sys)      # for all-mirror
 end
 
+choose_μ(state::CMAES_State) = (evolvable(state)) ? mu(state) : mu_(state)
 function update_scales!(runInfo::RunInfo, source::SelectionSource, state::CMAES_State)
 
 	len = length(source.fitness)
 	model = currentmodel_(state)
-	μ = mu(state)
+	μ = choose_μ(state)
+
 	w = Weights(normalize(map((i)->(log(μ+chrlength(state)) - log(i)), 1:μ), 1)) #less pressure than log(μ+0.5)
 	#w = Weights(fill(1/μ, μ))
 	orig_score = 0.0
