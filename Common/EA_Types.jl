@@ -145,6 +145,8 @@ mutable struct RestartState
   stagnation::Vector{Bool}
   stagnation_::Vector{Bool}
   shouldRestart::Bool
+  stagReason::Array{String}
+  stagReason_::Array{String}
   parms::Restart
 
   function RestartState(bfHist::BestFitHistory, bcHist_::BestChrHistory, parms::Restart)
@@ -156,6 +158,8 @@ mutable struct RestartState
     restart.bfHist_ = deepcopy(bfHist)
     restart.bcHist_ = bcHist_
     restart.shouldRestart = false
+    restart.stagReason = Array{String, 1}()
+    restart.stagReason_ = Array{String, 1}()
     restart.parms = parms
     restart
   end

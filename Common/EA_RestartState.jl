@@ -39,6 +39,25 @@ stagnation(restart::RestartState) = restart.stagnation
 stagnflags(restart::RestartState) = restart.stagnation
 shouldrestart(restart::RestartState) = restart.shouldRestart
 
+function stagReason!(restart::RestartState, msg::Array{String})
+    for i=1:length(restart.stagnation)
+        if restart.stagnation[i]
+            if !any(j -> (j == msg[i]), restart.stagReason)
+                restart.stagReason = vcat(restart.stagReason, msg[i])
+            end
+        end
+    end
+end
+
+function stagReason!_(restart::RestartState, msg::Array{String})
+    for i=1:length(restart.stagnation_)
+        if restart.stagnation_[i]
+            if !any(j -> (j == msg[i]), restart.stagReason_)
+                restart.stagReason_ = vcat(restart.stagReason_, msg[i])
+            end
+        end
+    end
+end
 
 function stagnationupdate!(restart::RestartState, state::State)
   if (currentgen(state) > 0) || (currentgen_(state) > 0)
@@ -47,7 +66,11 @@ function stagnationupdate!(restart::RestartState, state::State)
     if (found(state) || status(state) == :max_evals) restart.stagnation = fill(false, length(restart.stagnation)) end
     if (found_(state) || status_(state) == :max_evals) restart.stagnation_ = fill(false, length(restart.stagnation_)) end
 
+    msg = ["hist", "tolx", "zeroAxis", "negEigVal", "complexEigVal", "zeroEigVal", "zeroCoord", "cond"]
+
     if any(restart.stagnation) && any(restart.stagnation_)
+        stagReason!(restart, msg)
+        stagReason!_(restart, msg)
         restart.shouldRestart = true
         #println("case 1 shouldRestart")
     elseif found(state) && (any(restart.stagnation_) || status_(state) == :stop)
@@ -66,12 +89,14 @@ function stagnationupdate!(restart::RestartState, state::State)
         restart.shouldRestart = true
         #println("case 6 shouldRestart")
     elseif any(restart.stagnation) && !any(restart.stagnation_)
+      stagReason!(restart, msg)
       state.status = :stop
       if status_(state) == :stop restart.shouldRestart = true end
       state.firstRequest = :normal
       state.stopEvals = true
       #println("case 7")
     elseif any(restart.stagnation_) && !any(restart.stagnation)
+      stagReason!_(restart, msg)
       state.status_shadow = :stop
       if status(state) == :stop restart.shouldRestart = true end
       state.firstRequest = :dualcenter
