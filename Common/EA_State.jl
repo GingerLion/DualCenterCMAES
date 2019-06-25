@@ -99,16 +99,16 @@ same(member::Tuple, state::State) = bestfitness(member) == bestfitness(state)
 
 function found(state::State, fit::Fitness)
 	if found_(state)
-	 	abs(bestfitness(state) - fit.optimalValue) <= fit.epsilon && better_overall(state, best_overall_(state))
+	 	abs(bestfitoverall(state) - fit.optimalValue) <= fit.epsilon && better_overall(state, best_overall_(state))
 	else
-		abs(bestfitness(state) - fit.optimalValue) <= fit.epsilon
+		abs(bestfitoverall(state) - fit.optimalValue) <= fit.epsilon
 	end
 end
 function found_(state::State, fit::Fitness)
 	if found(state)
-		abs(bestfitness_(state) - fit.optimalValue) <= fit.epsilon && better_overall_(state, best_overall(state))
+		abs(bestfitoverall_(state) - fit.optimalValue) <= fit.epsilon && better_overall_(state, best_overall(state))
 	else
-		abs(bestfitness_(state) - fit.optimalValue) <= fit.epsilon
+		abs(bestfitoverall_(state) - fit.optimalValue) <= fit.epsilon
 	end
 end
 
