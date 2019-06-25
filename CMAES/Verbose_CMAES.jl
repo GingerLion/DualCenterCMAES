@@ -27,6 +27,7 @@ function println(state::CMAES_State, restart::RestartState)
         conditionPrinted = true
     end
     print("> : normal system\n")
+
   end
   if !isempty(restart.stagReason_)
       conditionPrinted = false
