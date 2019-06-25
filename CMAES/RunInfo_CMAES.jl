@@ -107,12 +107,12 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   preModel  = model(state, :pre)
   postModel = model(state, :post)
   w = weights(preModel)
-
+  w_ = weights(postModel) #needed now because a previous model may have different size μ
   # shadowged system models
   preModel_shadow = model_(state, :pre)
   postModel_shadow = model_(state, :post)
   w_shadow = weights(preModel_shadow)
-
+  w_shadow_ = weights(postModel_shadow)
   # main system state
   parents   = population(state, :parents)
   offspring = population(state, :pre)
@@ -159,7 +159,11 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   #println("dualcenter evals = $(first(runInfo[:total_evals_]))")
   # system state information
   runInfo[:center]  	= (state_center[:chr, 1], state_center[:fit, 1])
-  runInfo[:fitsummary]	= fitsummary(selected, runInfo, w)
+  preW = zeros(length(w))
+  postW = zeros(length(w_))
+  decision = w
+  if length(w) < length(w_) decision = w_ end
+  runInfo[:fitsummary]	= fitsummary(selected, runInfo, decision)
   src = SelectionSource(sourcevalues(runInfo), state)
   runInfo[:source] = deepcopy(src)
   runInfo[:center_shadow_source] = first(src.source)

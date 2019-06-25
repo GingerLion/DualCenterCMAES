@@ -55,21 +55,17 @@ function updatebest!(state::CMAES_State)
     else
         state.best = best(state.sOffspring)
         state.best_shadow = best(state.sOffspring_shadow)
-        if state.gen == 1
-            state.best_overall = state.best
-        end
-        if state.gen_shadow == 1
-            state.best_overall_ = state.best_shadow
-        end
-        if state.gen > 1
+        try
             if !better_overall(state, state.best)
                 state.best_overall = state.best
             end
-        end
-        if state.gen_shadow > 1
             if !better_overall_(state, state.best_shadow)
                 state.best_overall_ = state.best_shadow
             end
+        catch
+            state.best_overall = state.best
+            state.best_overall_ = state.best_shadow
+            println("exception caught - gen = $(currentgen(state)), gen_ = $(currentgen_(state))")
         end
     end
 end

@@ -20,7 +20,7 @@ function restarting!(state::State, restart::RestartState, f::Fitness, runInfo::M
   if hastocatchup(state) == :dualcenter || hastocatchup(state) == :normal || isMaxAndStop(state)
       typeof(state)(sys, f, restart, runInfo, verbose, new = false, cur_state = deepcopy(state))
   else
-      typeof(state)(sys, f, restart, runInfo, verbose)
+      typeof(state)(sys, f, restart, runInfo, verbose, new = true, cur_state = deepcopy(state))
   end
 end
 
@@ -30,7 +30,6 @@ function runEA(state::State, restart::RestartState, f::Fitness,
     if shouldrestart(restart)
       #println("restarting...")
       #if (status(state) == :stop && status_(state) == :stop) println("both systems = :stop") end
-      println("state = $(status(state)), state_ = $(status_(state))")
       update!(returnInfo, state, restart)
       state = restarting!(state, restart, f, runInfo, verbose)
     end
