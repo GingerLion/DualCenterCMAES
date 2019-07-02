@@ -21,7 +21,7 @@ end
 
 function CMAES_System(sys::CMAES_System, f::RealFitness, restart::RestartState, verbose::Verbose)
   (μ, λ) = nextpopnsize(sys, restart)
-  
+
   if atlevel(verbose, RestartLevel)
     println("new μ = $μ, new λ = $λ")
   end

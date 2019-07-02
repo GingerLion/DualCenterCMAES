@@ -22,8 +22,8 @@ function update!(runInfo::RunInfo, sys::CMAES_System)
     runInfo.uq = locquantile(0.75, w)
     runInfo.med = locquantile(0.5, w)
     runInfo.lq = locquantile(0.25, w)
-    runInfo.sourceValues = SelectionSourceParms(sys) #used to be (sys)
-    runInfo.allSourceValues = AllSourceParms(sys)      # for all-mirror
+    #runInfo.sourceValues = SelectionSourceParms(sys) #used to be (sys)
+    #runInfo.allSourceValues = AllSourceParms(sys)      # for all-mirror
 end
 
 choose_μ(state::CMAES_State) = (evolvable(state)) ? mu(state) : mu_(state)
@@ -34,6 +34,7 @@ function update_scales!(runInfo::RunInfo, source::SelectionSource, state::CMAES_
 	μ = choose_μ(state)
 
 	w = Weights(normalize(map((i)->(log(μ+chrlength(state)) - log(i)), 1:μ), 1)) #less pressure than log(μ+0.5)
+	#w = Weights(normalize(map((i)->(log(2μ) - log(i)), 1:μ), 1))
 	#w = Weights(fill(1/μ, μ))
 	orig_score = 0.0
 	best_score = 0.0
@@ -159,11 +160,11 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   #println("dualcenter evals = $(first(runInfo[:total_evals_]))")
   # system state information
   runInfo[:center]  	= (state_center[:chr, 1], state_center[:fit, 1])
-  preW = zeros(length(w))
-  postW = zeros(length(w_))
-  decision = w
-  if length(w) < length(w_) decision = w_ end
-  runInfo[:fitsummary]	= fitsummary(selected, runInfo, decision)
+  #preW = zeros(length(w))
+  #postW = zeros(length(w_))
+  #decision = w
+  #if length(w) < length(w_) decision = w_ end
+  #runInfo[:fitsummary]	= fitsummary(selected, runInfo, decision)
   src = SelectionSource(sourcevalues(runInfo), state)
   runInfo[:source] = deepcopy(src)
   runInfo[:center_shadow_source] = first(src.source)
@@ -193,7 +194,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   #println("center_ = $(state_center_shadow_[:fit,1])")
   #println("center = $(runInfo[:center_fit_shadow]), center_ = $(runInfo[:center_fit_shadow_])")
   runInfo[:offspring_center] = (offspring_center, objfn(f)(offspring_center))
-  runInfo[:offs_fitsummary]	 = fitsummary(offspring_selected,runInfo,  w)
+  #runInfo[:offs_fitsummary]	 = fitsummary(offspring_selected,runInfo,  w)
 
   # all (parents + center + offspring) mirror
   #(all_selected, all_sortOrder) = truncation(pcat(parents, state_center, offspring), mu(state))
