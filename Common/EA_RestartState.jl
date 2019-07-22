@@ -117,18 +117,28 @@ function update!(restart::RestartState, state::State, sys::System)
   end
   #println("bcHist_ = $(history(restart.bcHist_))")
   len = length(history(restart.bcHist_))
-  if len > 0
-      w = Weights(normalize(map((i)->(log(len+chrlength(state)) - log(i)), 1:len), 1))
+  if len >  length(restart.bcHist_)
+    tmp = deepcopy(history(restart.bcHist_))
+    deleteat!(tmp,len)
+    restart.bcHist_.history = nil()
+    for i in Iterators.reverse(tmp)
+      restart.bcHist_.history = cons(i, restart.bcHist_.history)
+    end
+  end
+  len = length(history(restart.bcHist_))
+  if len > 1
+      w = Weights(normalize(map((i)->(log(len + 15 + (4 * log(chrlength(state)))) - log(i)), 1:len), 1))
+      #println("lenw = $(length(w)) len = $(len), \n w = $(w), history = $(history(restart.bcHist_))")
       center!_(state,  sum(map((x) -> w[x] * history(restart.bcHist_)[x], 1:length(w))))
       #center!_(state, mean(history(restart.bcHist_), w, dims=1))
   else
       try
-          center!_(state, bestfitness(best_(state)))
+          center!_(state, bestchromosome(best_(state)))
       catch
           center!_(state, center_(state))
       end
   end
-  if len >=  length(restart.bcHist_) restart.bcHist_.history = nil() end
+
 end
 
 ##--------------------------------------

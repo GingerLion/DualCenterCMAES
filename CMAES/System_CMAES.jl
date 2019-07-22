@@ -8,11 +8,11 @@
 
 # -------------------------------
 # External Constructor
-
+# λ = 4 + floor(Int, 3 * log(n))
 function CMAES_System(n::Integer, f::RealFitness;
                       maxEvals = 10_000, modelParms = :default,
                       segmentCount = 1, beginBinding = :mostFit, loaded = :mostFit,
-                      includeCenter = false, elitism = false, λ = 4 + floor(Int, 3 * log(n)), η = 1)
+                      includeCenter = false, elitism = false, λ = 4 + floor(Int, 3 * log(n)) , η = 1)
   modelParms = (modelParms == :default) ? Model_Parms(n, f; λ = λ) : modelParms
   selectionParms = Selection_Parms(n, modelParms.μ, modelParms.λ, f.direction,
                                    loaded, beginBinding, segmentCount, includeCenter, elitism, η)

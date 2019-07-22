@@ -40,12 +40,32 @@ function update_scales!(runInfo::RunInfo, source::SelectionSource, state::CMAES_
 	best_score = 0.0
 	orig_scale = 0.0
 	best_scale = 0.0
+	orig_upper = 0.0
+	orig_middle = 0.0
+	orig_lower = 0.0
+	best_upper = 0.0
+	best_middle = 0.0
+	best_lower = 0.0
+	q_size = floor(Int64, len/3)
 
 	for i=1:len
 		(source.source[i] == :orig) ? orig_score += w[i] : best_score += w[i]
+		if i in 1:q_size
+			(source.source[i] == :orig) ? orig_upper += 1 : best_upper += 1
+		elseif i in q_size+1:2q_size
+			(source.source[i] == :orig) ? orig_middle += 1 : best_middle += 1
+		else
+			(source.source[i] == :orig) ? orig_lower += 1 : best_lower += 1
+		end
 	end
-	#println("sourcevalues = $(source.source)\n")
-	#println("orig score = $(orig_score), best_score = $(best_score)")
+
+	runInfo[:orig_upper] = orig_upper/q_size
+	runInfo[:best_upper] = best_upper/q_size
+	runInfo[:orig_middle] = orig_middle/q_size
+	runInfo[:best_middle] = best_middle/q_size
+	runInfo[:orig_lower] = orig_lower/(len - 2q_size)
+	runInfo[:best_lower] = best_lower/(len - 2q_size)
+
 	if orig_score > best_score
 		orig_scale = 1 + orig_score
 		best_scale = 2 - orig_scale
@@ -168,7 +188,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   src = SelectionSource(sourcevalues(runInfo), state)
   runInfo[:source] = deepcopy(src)
   runInfo[:center_shadow_source] = first(src.source)
-
+  # uncomment only when update_scales!(runInfo, src, state) is commented out - runInfo.sourceValues = SelectionSourceParms(system(state), postModel_shadow)
   update_scales!(runInfo, src, state)
 
   #stepsize!_(src, postModel_shadow)

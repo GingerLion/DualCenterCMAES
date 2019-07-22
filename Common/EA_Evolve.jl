@@ -14,8 +14,6 @@ function evolve!(state::State, f::Fitness, runInfo::Monitor, verbose::Verbose)
   if evolvable(state) || evolvable_(state)
     if currentgen_(state) == 0
     	   runInfo.sourceValues = SelectionSourceParms(system(state), currentmodel_(state))
-    	   println("initializing correct # of :orig and :best")
-    	   println("$(sourcevalues(sourcevalues(runInfo)))")
     end
     if evolvable(state)
         evolvepopn!(state, f)
@@ -44,8 +42,6 @@ function evolve!(state::State, f::Fitness, restart::RestartState, runInfo::Monit
   if (evolvable(state, restart) || status(state) == :stop) || (evolvable_(state, restart) || status_(state) == :stop)
     if currentgen_(state) == 0
       	runInfo.sourceValues = SelectionSourceParms(system(state), currentmodel_(state))
-      	println("initializing correct # of :orig and :best")
-      	println("$(sourcevalues(sourcevalues(runInfo)))")
     end
     if evolvable(state, restart)
         evolvepopn!(state, f)
