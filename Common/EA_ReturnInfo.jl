@@ -60,7 +60,7 @@ end
 
 function update!(rinfo::ReReturnInfo, state::State, restart::RestartState)
   rinfo.state       = cons(deepcopy(state), rinfo.state)
-  rinfo.popnSize    = cons(popnsize(state), rinfo.popnSize)
+  rinfo.popnSize    = cons(lambda(system(state)), rinfo.popnSize)
   rinfo.localEvals  = cons(evals(state), rinfo.localEvals)
   rinfo.localEvals_ = cons(evals_(state), rinfo.localEvals_)
   rinfo.totalEvals  = cons(evals(restart), rinfo.totalEvals)

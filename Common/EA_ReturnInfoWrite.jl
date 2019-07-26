@@ -26,7 +26,8 @@ function write_final(rinfo::ReReturnInfo; prefixValues = [], prefixNames = [], i
   end
 
   state = last(rinfo.state)
-  popnSize = last(rinfo.popnSize)
+  #popnSize = last(rinfo.popnSize)
+  popnSize = lambda(system(state))
   totalEvals = last(rinfo.totalEvals)
   totalEvals_ = last(rinfo.totalEvals_)
   restart = length(rinfo.state) - 1
@@ -80,7 +81,7 @@ function write_final(rinfo::ReturnInfo; prefixValues = [], prefixNames = [], ini
   end
 
   state = rinfo.state
-  popnSize = popnsize(state)
+  popnSize = lambda(system(state))
   totalEvals = evals(state)
   foundSol = found(state)
   (chr, fit) = best(state)

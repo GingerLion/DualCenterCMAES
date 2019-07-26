@@ -21,7 +21,8 @@
 function RestartState(rsys::Restart, state::State)
   bfHist = BestFitHistory(rsys.historyWindow, direction(state))
   bcHist_ = BestChrHistory(10, direction(state))
-  restart = RestartState(bfHist, bcHist_, rsys)
+  bcHist_fitnesses_ = BestFitHistory(10, direction(state))
+  restart = RestartState(bfHist, bcHist_, bcHist_fitnesses_, rsys)
   stagnationupdate!(restart, state)
   restart
 end
@@ -113,18 +114,45 @@ function update!(restart::RestartState, state::State, sys::System)
   if evolvable(state) restart.bfHist[] = bestfitness(best(state)) end
   if evolvable_(state)
       restart.bfHist_[] = bestfitness(best_(state))
-      restart.bcHist_[] = bestchromosome(best_(state)) #note that this is a list with its own setindex! function
+      if !isWindowFull(restart)
+          restart.bcHist_[] = bestchromosome(best_(state)) #note that this is a list with its own setindex! function
+          #println("Chromosome Window => $(history(restart.bcHist_))")
+          restart.bcHist_fitnesses_[] = bestfitness(best_(state))
+          #println("Fitness Window => $(history(restart.bcHist_fitnesses_))")
+          #println("Window is not full. Length of window is $(length(history(restart.bcHist_))).")
+      elseif isWindowFull(restart) && canEnterWindow(deepcopy(bestfitness(best_(state))), history(restart.bcHist_fitnesses_), direction(restart.bcHist_))
+          #println("-----------------------------------------\n Can enter window.")
+          tmp = deepcopy(history(restart.bcHist_))
+          #println("tmp before delete => $(tmp)")
+          deleteat!(tmp,length(restart.bcHist_)) #delete at 10 (oldest member of list)
+          #println("tmp after delete => $(tmp)")
+          #println("fitness window before delete => $(history(restart.bcHist_fitnesses_))")
+          deleteat!(restart.bcHist_fitnesses_.history, 1) # delete at 1 (oldest fitness of the vector)
+          #println("fitness window before delete => $(history(restart.bcHist_fitnesses_))")
+          restart.bcHist_.history = nil() #empty list
+          #dont have to empty fitness vector
+          for i in Iterators.reverse(tmp) #put old values back from tmp to the List
+            restart.bcHist_.history = cons(i, restart.bcHist_.history) # List
+          end
+          restart.bcHist_.history = cons(bestchromosome(best_(state)), restart.bcHist_.history) # add new chromosome (most recent and head of list)
+          #println("Chromosome Window with new chromosome => $(history(restart.bcHist_))")
+          push!(restart.bcHist_fitnesses_.history, bestfitness(best_(state))) # append new fitness of new chromosome (most recent at end of vector)
+          #println("fitness window after new fitness => $(history(restart.bcHist_fitnesses_))\n-----------------------------------------")
+      else
+          println("Couldn't enter window.")
+      end
   end
-  #println("bcHist_ = $(history(restart.bcHist_))")
+  # NON-ELITIST window code
+  #=restart.bcHist_[] = bestchromosome(best_(state))
   len = length(history(restart.bcHist_))
   if len >  length(restart.bcHist_)
-    tmp = deepcopy(history(restart.bcHist_))
-    deleteat!(tmp,len)
+    tmp = deepcopy(history(restart.bcHist_)) # List
+    deleteat!(tmp,len) # List
     restart.bcHist_.history = nil()
     for i in Iterators.reverse(tmp)
-      restart.bcHist_.history = cons(i, restart.bcHist_.history)
+      restart.bcHist_.history = cons(i, restart.bcHist_.history) # List
     end
-  end
+end=# #NON - ELITIST Window code
   len = length(history(restart.bcHist_))
   if len > 1
       w = Weights(normalize(map((i)->(log(len + 15 + (4 * log(chrlength(state)))) - log(i)), 1:len), 1))
@@ -158,4 +186,24 @@ function equalfunvalhist_(currentFit::Vector, restart::RestartState)
 	zero_hist = (maximum(historyFit) - minimum(historyFit) == 0.0)
 	tol_all = (maximum(allFit) - minimum(allFit) < tol_f(restart))
 	zero_hist || tol_all
+end
+
+isWindowFull(restart::RestartState) = (length(history(restart.bcHist_)) == length(restart.bcHist_)) ? true : false
+
+function canEnterWindow(newFit::Float64, historyWindow::Vector{Float64}, direction::Symbol)
+    canEnter = false
+    if direction == :min
+        for i in historyWindow
+            if newFit < i
+                canEnter = true
+            end
+        end
+    elseif direction == :max
+        for i in historyWindow
+            if newFit > i
+                canEnter = true
+            end
+        end
+    end
+    return canEnter
 end

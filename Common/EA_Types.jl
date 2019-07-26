@@ -142,6 +142,7 @@ mutable struct RestartState
   bfHist::BestFitHistory
   bfHist_::BestFitHistory
   bcHist_::BestChrHistory
+  bcHist_fitnesses_::BestFitHistory
   stagnation::Vector{Bool}
   stagnation_::Vector{Bool}
   shouldRestart::Bool
@@ -149,7 +150,7 @@ mutable struct RestartState
   stagReason_::Array{String}
   parms::Restart
 
-  function RestartState(bfHist::BestFitHistory, bcHist_::BestChrHistory, parms::Restart)
+  function RestartState(bfHist::BestFitHistory, bcHist_::BestChrHistory, bcHist_fitnesses_::BestFitHistory, parms::Restart)
     restart = new()
     restart.rep = 0
     restart.totalEvals = 0
@@ -157,6 +158,7 @@ mutable struct RestartState
     restart.bfHist = bfHist
     restart.bfHist_ = deepcopy(bfHist)
     restart.bcHist_ = bcHist_
+    restart.bcHist_fitnesses_ = bcHist_fitnesses_
     restart.shouldRestart = false
     restart.stagReason = Array{String, 1}()
     restart.stagReason_ = Array{String, 1}()

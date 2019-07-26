@@ -34,12 +34,13 @@ function runEA(state::State, restart::RestartState, f::Fitness,
       state = restarting!(state, restart, f, runInfo, verbose)
     end
 
-    #if normal finds first
-    if found(state) && !found_(state)
+    #this block of code was commented out because now we're running both systems to max_evals a.k.a fixed budget
+    #=if found(state) && !found_(state)
         system(state).maxEvals = first(runInfo[:total_evals])
     elseif found_(state) && !found(state)
         system(state).maxEvals = first(runInfo[:total_evals_])
-    end
+    end=#
+    
     #println("runEA: status = $(status(state)), status_shadow = $(status_(state)), maxEvals = $(system(state).maxEvals)")
     evolve!(state, f, restart, runInfo, verbose)
   end

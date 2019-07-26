@@ -31,3 +31,4 @@ best(bfh::BestFitHistory) = (maximizing(bfh) ? maximum(bfh) : minimum(bfh))
 worst(bfh::BestFitHistory) = (minimizing(bfh) ? maximum(bfh) : minimum(bfh))
 history(bfh::BestFitHistory) = copy(bfh.history)
 history(bch::BestChrHistory) = copy(collect(bch.history))
+direction(bch::BestChrHistory) = bch.direction
