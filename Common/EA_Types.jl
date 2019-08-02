@@ -143,6 +143,7 @@ mutable struct RestartState
   bfHist_::BestFitHistory
   bcHist_::BestChrHistory
   bcHist_fitnesses_::BestFitHistory
+  sortOrder::Vector{Int}
   stagnation::Vector{Bool}
   stagnation_::Vector{Bool}
   shouldRestart::Bool
@@ -159,6 +160,7 @@ mutable struct RestartState
     restart.bfHist_ = deepcopy(bfHist)
     restart.bcHist_ = bcHist_
     restart.bcHist_fitnesses_ = bcHist_fitnesses_
+    restart.sortOrder = Vector{Int}(undef,length(bcHist_.windowSize))
     restart.shouldRestart = false
     restart.stagReason = Array{String, 1}()
     restart.stagReason_ = Array{String, 1}()

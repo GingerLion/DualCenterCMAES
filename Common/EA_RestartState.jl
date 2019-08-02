@@ -114,57 +114,9 @@ function update!(restart::RestartState, state::State, sys::System)
   if evolvable(state) restart.bfHist[] = bestfitness(best(state)) end
   if evolvable_(state)
       restart.bfHist_[] = bestfitness(best_(state))
-      if !isWindowFull(restart)
-          restart.bcHist_[] = bestchromosome(best_(state)) #note that this is a list with its own setindex! function
-          #println("Chromosome Window => $(history(restart.bcHist_))")
-          restart.bcHist_fitnesses_[] = bestfitness(best_(state))
-          #println("Fitness Window => $(history(restart.bcHist_fitnesses_))")
-          #println("Window is not full. Length of window is $(length(history(restart.bcHist_))).")
-      elseif isWindowFull(restart) && canEnterWindow(deepcopy(bestfitness(best_(state))), history(restart.bcHist_fitnesses_), direction(restart.bcHist_))
-          #println("-----------------------------------------\n Can enter window.")
-          tmp = deepcopy(history(restart.bcHist_))
-          #println("tmp before delete => $(tmp)")
-          deleteat!(tmp,length(restart.bcHist_)) #delete at 10 (oldest member of list)
-          #println("tmp after delete => $(tmp)")
-          #println("fitness window before delete => $(history(restart.bcHist_fitnesses_))")
-          deleteat!(restart.bcHist_fitnesses_.history, 1) # delete at 1 (oldest fitness of the vector)
-          #println("fitness window before delete => $(history(restart.bcHist_fitnesses_))")
-          restart.bcHist_.history = nil() #empty list
-          #dont have to empty fitness vector
-          for i in Iterators.reverse(tmp) #put old values back from tmp to the List
-            restart.bcHist_.history = cons(i, restart.bcHist_.history) # List
-          end
-          restart.bcHist_.history = cons(bestchromosome(best_(state)), restart.bcHist_.history) # add new chromosome (most recent and head of list)
-          #println("Chromosome Window with new chromosome => $(history(restart.bcHist_))")
-          push!(restart.bcHist_fitnesses_.history, bestfitness(best_(state))) # append new fitness of new chromosome (most recent at end of vector)
-          #println("fitness window after new fitness => $(history(restart.bcHist_fitnesses_))\n-----------------------------------------")
-      else
-          println("Couldn't enter window.")
-      end
-  end
-  # NON-ELITIST window code
-  #=restart.bcHist_[] = bestchromosome(best_(state))
-  len = length(history(restart.bcHist_))
-  if len >  length(restart.bcHist_)
-    tmp = deepcopy(history(restart.bcHist_)) # List
-    deleteat!(tmp,len) # List
-    restart.bcHist_.history = nil()
-    for i in Iterators.reverse(tmp)
-      restart.bcHist_.history = cons(i, restart.bcHist_.history) # List
-    end
-end=# #NON - ELITIST Window code
-  len = length(history(restart.bcHist_))
-  if len > 1
-      w = Weights(normalize(map((i)->(log(len + 15 + (4 * log(chrlength(state)))) - log(i)), 1:len), 1))
-      #println("lenw = $(length(w)) len = $(len), \n w = $(w), history = $(history(restart.bcHist_))")
-      center!_(state,  sum(map((x) -> w[x] * history(restart.bcHist_)[x], 1:length(w))))
-      #center!_(state, mean(history(restart.bcHist_), w, dims=1))
-  else
-      try
-          center!_(state, bestchromosome(best_(state)))
-      catch
-          center!_(state, center_(state))
-      end
+      #updateSlidingWindow(state, restart)
+      #updateEliteWindowUnSorted(state, restart)
+      updateEliteWindowSorted(state, restart)
   end
 
 end
@@ -206,4 +158,120 @@ function canEnterWindow(newFit::Float64, historyWindow::Vector{Float64}, directi
         end
     end
     return canEnter
+end
+
+function updateSlidingWindow(state::State, restart::RestartState)
+    restart.bcHist_[] = bestchromosome(best_(state))
+    len = length(history(restart.bcHist_))
+    if len >  length(restart.bcHist_)
+      tmp = deepcopy(history(restart.bcHist_)) # List
+      #println("tmp chr window before => $(tmp)")
+      deleteat!(tmp,len) # List
+      #println("tmp chr window after delete=> $(tmp)")
+      restart.bcHist_.history = nil()
+      for i in Iterators.reverse(tmp)
+          restart.bcHist_.history = cons(i, restart.bcHist_.history) # List
+      end
+    end
+    #println("real chr window before update=> $(history(restart.bcHist_))")
+    # update center_
+    updateCenter!_(state, restart, history(restart.bcHist_))
+end
+
+function updateEliteWindowUnSorted(state::State, restart::RestartState)
+    if !isWindowFull(restart)
+        restart.bcHist_[] = bestchromosome(best_(state)) #note that this is a list with its own setindex! function
+        println("Chromosome Window => $(history(restart.bcHist_))\n")
+        restart.bcHist_fitnesses_[] = bestfitness(best_(state))
+        println("Fitness Window => $(history(restart.bcHist_fitnesses_))\n")
+        println("Window is not full. Length of window is $(length(history(restart.bcHist_)))\n")
+    elseif isWindowFull(restart) && canEnterWindow(deepcopy(bestfitness(best_(state))), history(restart.bcHist_fitnesses_), direction(restart.bcHist_))
+        println("-----------------------------------------\n Can enter window.")
+        tmp = deepcopy(history(restart.bcHist_))
+        println("tmp before delete => $(tmp)\n")
+        deleteat!(tmp,length(restart.bcHist_)) #delete at 10 (oldest member of list)
+        println("tmp after delete => $(tmp)\n")
+        println("fitness window before delete => $(history(restart.bcHist_fitnesses_))\n")
+        deleteat!(restart.bcHist_fitnesses_.history, 1) # delete at 1 (oldest fitness of the vector)
+        println("fitness window after delete => $(history(restart.bcHist_fitnesses_))\n")
+        restart.bcHist_.history = nil() #empty list
+        #dont have to empty fitness vector
+        for i in Iterators.reverse(tmp) #put old values back from tmp to the List
+          restart.bcHist_.history = cons(i, restart.bcHist_.history) # List
+        end
+        restart.bcHist_.history = cons(bestchromosome(best_(state)), restart.bcHist_.history) # add new chromosome (most recent and head of list)
+        println("Chromosome Window with new chromosome => $(history(restart.bcHist_))\n")
+        push!(restart.bcHist_fitnesses_.history, bestfitness(best_(state))) # append new fitness of new chromosome (most recent at end of vector)
+        println("fitness window after new fitness => $(history(restart.bcHist_fitnesses_))\n-----------------------------------------")
+        #println("Couldn't enter window.")
+    end
+    #update center_
+    updateCenter!_(state, restart, history(restart.bcHist_))
+end
+
+function updateEliteWindowSorted(state::State, restart::RestartState)
+    if !isWindowFull(restart)
+        #println("Window not full.")
+        restart.bcHist_[] = bestchromosome(best_(state))
+        #println("Chromosome Window => $(history(restart.bcHist_))")
+        restart.bcHist_fitnesses_[] = bestfitness(best_(state))
+        #println("Fitness Window => $(history(restart.bcHist_fitnesses_))")
+        restart.sortOrder = sortperm(history(restart.bcHist_fitnesses_))
+        #println("Sort Order => $(restart.sortOrder)")
+    elseif isWindowFull(restart) && canEnterWindow(deepcopy(bestfitness(best_(state))), history(restart.bcHist_fitnesses_), direction(restart.bcHist_))
+        #println("--------------------------------------------------")
+        # delete weakest fitness value
+        #println("Sort Order => $(restart.sortOrder)")
+        #println("Fitness Window Before Delete=> $(history(restart.bcHist_fitnesses_))")
+        deleteat!(restart.bcHist_fitnesses_.history, restart.sortOrder[end])
+        #println("Fitness Window After Delete=> $(history(restart.bcHist_fitnesses_))")
+        # push new fitness value to the end of array
+        push!(restart.bcHist_fitnesses_.history, bestfitness(best_(state)))
+        #println("Fitness Window After Adding New Fitness => $(history(restart.bcHist_fitnesses_))")
+        # reverse and collect in temporary variable because list members are added the head of the list
+        tmp = collect(reverse(history(restart.bcHist_)))
+        #println("Real Chromosome Window = $(history(restart.bcHist_))")
+        #println("Reversed Temporary Chromosome Window => $(tmp)")
+        # delete chromosome associaed with weakest fitness value from the temporary array
+        deleteat!(tmp, restart.sortOrder[end])
+        #println("Reversed Temporary Chromosome Window After Delete => $(tmp)")
+        # push new chromosome to the end of tmp
+        push!(tmp, bestchromosome(best_(state)))
+        #println("Reversed Temporary Chromosome Window After Adding New Chr => $(tmp)")
+        #empty the list before adding back the chromosome list elements
+        restart.bcHist_.history = nil()
+        # add back the chromosomes from tmp to the chromosome window list (since tmp is already the reversed list i can simply cons() each element in order)
+        for i in tmp
+            restart.bcHist_.history = cons(i, restart.bcHist_.history)
+        end
+        #println("New Real Chromosome Window => $(history(restart.bcHist_))")
+        # update the sortOrder since a new fitness values were added
+        restart.sortOrder = sortperm(history(restart.bcHist_fitnesses_))
+        #println("New Sort Order => $(restart.sortOrder)")
+
+    end
+    #prepare tmp center_ update
+    len = length(history(restart.bcHist_))
+    tmp = Array{Array{Float64,1},1}(undef, len)
+    for i=1:len
+        tmp[i] = collect(reverse(restart.bcHist_.history))[restart.sortOrder[i]]
+    end
+    #println("Chromosomes in order of fitness and ready to be flattened => $(tmp)")
+    #println("--------------------------------------------------")
+    #update center_
+    updateCenter!_(state, restart, tmp)
+end
+
+function updateCenter!_(state::State, restart::RestartState, window::Array)
+    len = length(history(restart.bcHist_))
+    if len > 1
+        w = Weights(normalize(map((i)->(log(len + 15 + (4 * log(chrlength(state)))) - log(i)), 1:len), 1))
+        center!_(state, sum(map((x)->w[x] * window[x],1:length(w))))
+    else
+        try
+            center!_(state, bestchromosome(best_(state)))
+        catch
+            center!_(state, center_(state))
+        end
+    end
 end

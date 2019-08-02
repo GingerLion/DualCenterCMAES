@@ -99,5 +99,7 @@ function next!(restart::RestartState, state::CMAES_State)
   restart.bfHist = BestFitHistory(histWindow, direction(state))
   restart.bfHist_ = BestFitHistory(histWindow, direction(state))
   restart.bcHist_ = BestChrHistory(10, direction(state))
+  restart.bcHist_fitnesses_ = BestFitHistory(10, direction(state))
+  restart.sortOrder = Vector{Int}(undef,10)
   restart.shouldRestart = false
 end
