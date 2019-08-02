@@ -351,7 +351,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, restart::RestartState, f
   runInfo[:g_evals] = evals(restart)
   runInfo[:restart]	= rep(restart)
   runInfo[:lambda]  = lambda(state)
-  #runInfo[:lambda_shadow] = lambda_(state)
+  runInfo[:lambda_shadow] = lambda_(state)
 end
 
 #-----------------------

@@ -50,28 +50,42 @@ end
 
 #updatebest!(state::CMAES_State) = (state.best = best(state.sOffspring))
 function updatebest!(state::CMAES_State)
+    #if any(i -> isnan(i), members(state.sOffspring_shadow))
+        #state.best_shadow = ([NaN], NaN)
+    state.best = best(state.sOffspring)
+    try
+        if !better_overall(state, state.best)
+            state.best_overall = state.best
+        end
+    catch
+        state.best_overall = state.best
+        #println("exception caught - gen = $(currentgen(state)), gen_ = $(currentgen_(state))")
+    end
+end
+
+function updatebest!_(state::CMAES_State)
     if any(i -> isnan(i), members(state.sOffspring_shadow))
         state.best_shadow = ([NaN], NaN)
     else
-        state.best = best(state.sOffspring)
         state.best_shadow = best(state.sOffspring_shadow)
         try
-            if !better_overall(state, state.best)
-                state.best_overall = state.best
-            end
             if !better_overall_(state, state.best_shadow)
                 state.best_overall_ = state.best_shadow
             end
         catch
-            state.best_overall = state.best
             state.best_overall_ = state.best_shadow
-            println("exception caught - gen = $(currentgen(state)), gen_ = $(currentgen_(state))")
+            #println("exception caught - gen = $(currentgen(state)), gen_ = $(currentgen_(state))")
         end
     end
 end
 
 function updategen!(state::CMAES_State)
   if status(state) == :evolve state.evalCount += evalsPerGen(system(state)); state.gen +=  1 end
+  #if status_(state) == :evolve state.evalCount_shadow += evalsPerGen_(system(state)); state.gen_shadow += 1 end
+end
+
+function updategen!_(state::CMAES_State)
+  #if status(state) == :evolve state.evalCount += evalsPerGen(system(state)); state.gen +=  1 end
   if status_(state) == :evolve state.evalCount_shadow += evalsPerGen_(system(state)); state.gen_shadow += 1 end
 end
 
@@ -96,8 +110,8 @@ function update!_(state::CMAES_State, model::CMAES_Model,
   update!_(state, nW, sW)
 
   # update progress
-  updategen!(state)
-  updatebest!(state)
+  updategen!_(state)
+  updatebest!_(state)
 end
 
 # -------------------------------

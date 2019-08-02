@@ -5,14 +5,15 @@ function write_final_header(fileName::String, rinfo::ReReturnInfo, prefixNames::
 	  end
     write(f, "restart$(sep)")
     write(f, "popnSize$(sep)")
+    write(f, "popnSize_$(sep)")
     write(f, "found$(sep)")
     write(f, "normal evals$(sep)")
     write(f, "dualcenter evals$(sep)")
     write(f, "bestRestart$(sep)")
     write(f, "normal_bestFit$(sep)")
-    write(f, "dual_bestFit$(sep)")
-    write(f, "normal_bestChr$(sep)")
-    write(f, "dual_bestChr\n")
+    write(f, "dual_bestFit\n")
+    #write(f, "normal_bestChr$(sep)")
+    #write(f, "dual_bestChr\n")
   end
 end
 
@@ -27,7 +28,8 @@ function write_final(rinfo::ReReturnInfo; prefixValues = [], prefixNames = [], i
 
   state = last(rinfo.state)
   #popnSize = last(rinfo.popnSize)
-  popnSize = lambda(system(state))
+  popnSize = popnsize(state.nOffspring)
+  popnSize_ = popnsize(state.nOffspring_shadow)
   totalEvals = last(rinfo.totalEvals)
   totalEvals_ = last(rinfo.totalEvals_)
   restart = length(rinfo.state) - 1
@@ -47,14 +49,15 @@ function write_final(rinfo::ReReturnInfo; prefixValues = [], prefixNames = [], i
   	end
     write(f, "$restart$(sep)")
     write(f, "$popnSize$(sep)")
+    write(f, "$popnSize_$(sep)")
     write(f, "$foundSol$(sep)")
     write(f, "$totalEvals$(sep)")
     write(f, "$totalEvals_$(sep)")
     write(f, "$bestRestart$(sep)")
     write(f, "$bestFit$(sep)")
-    write(f, "$bestFit_$(sep)")
-    write(f, "$bestChr$(sep)")
-    write(f, "$bestChr_$(sep)\n")
+    write(f, "$bestFit_\n")
+    #write(f, "$bestChr$(sep)")
+    #write(f, "$bestChr_$(sep)\n")
   end
 end
 

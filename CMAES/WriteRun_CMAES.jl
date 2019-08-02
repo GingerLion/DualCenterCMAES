@@ -19,8 +19,8 @@ function write_run_header(fileName::String, returnInfo::ReReturnInfo, prefixName
 	end
     write(f, "restart$(sep)")
     write(f, "lambda$(sep)")
-    #write(f, "lambda_shadow$(sep)")
-    write(f, "gen$(sep)")
+    write(f, "lambda_$(sep)")
+    write(f, "gen_$(sep)")
     #write(f, "gen_shadow$(sep)")
     write(f, "evals$(sep)")
     write(f, "cond$(sep)")
@@ -176,9 +176,9 @@ function write_run(fileName::String, returnInfo::ReReturnInfo, sys::CMAES_System
   	  end
       write(f, "$(ri[:restart][i])$sep")
       write(f, "$(ri[:lambda][i])$sep")
-      #write(f, "$(ri[:lambda_shadow][i])$sep")
+      write(f, "$(ri[:lambda_shadow][i])$sep")
       write(f, "$(ri[:gen][i])$sep")
-      #write(f, "$(ri[:gen_][i])$sep")
+      write(f, "$(ri[:gen_shadow][i])$sep")
       write(f, "$(ri[:g_evals][i])$sep")
       write(f, "$(ri[:cond][i])$sep")
       write(f, "$(ri[:cond_shadow][i])$sep")

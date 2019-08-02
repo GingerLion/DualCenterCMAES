@@ -154,6 +154,7 @@ error!_(c::CMAES_State, errorCode::Symbol = :error) = (c.status_shadow = errorCo
 currentmodel(c::CMAES_State) = c.nModel
 mu(c::CMAES_State) = c.nModel.parms.μ
 lambda(c::CMAES_State) = c.nModel.parms.λ
+lambda_(c::CMAES_State) = c.nModel_shadow.parms.λ
 sigma(c::CMAES_State) = c.nModel.σ
 center(c::CMAES_State) = c.nModel.center
 covar(c::CMAES_State) = c.nModel.C
