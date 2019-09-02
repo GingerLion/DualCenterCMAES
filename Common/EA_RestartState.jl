@@ -114,9 +114,9 @@ function update!(restart::RestartState, state::State, sys::System)
   if evolvable(state) restart.bfHist[] = bestfitness(best(state)) end
   if evolvable_(state)
       restart.bfHist_[] = bestfitness(best_(state))
-      #updateSlidingWindow(state, restart)
+      updateSlidingWindow(state, restart)
       #updateEliteWindowUnSorted(state, restart)
-      updateEliteWindowSorted(state, restart)
+      #updateEliteWindowSorted(state, restart)
   end
 
 end

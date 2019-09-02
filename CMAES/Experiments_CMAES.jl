@@ -31,12 +31,12 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 
 					if summary
 						write_final(ipop; prefixNames = prefixNames, prefixValues = prefixValues,
-						            	  initialize = firstTime, path = outputPath, fileName = "allfns_sortedelitewindow_final$exprName")
+						            	  initialize = firstTime, path = outputPath, fileName = "allfns_slidingwindow_final$exprName")
 					end
 
 					if monitored
 						write_run(ipop, sys, f; prefixNames = prefixNames, prefixValues = prefixValues,
-					   			    	     	initialize = firstTime, path = outputPath, fileName = "allfns_sortedelitewindow_run$exprName", sep = ",")
+					   			    	     	initialize = firstTime, path = outputPath, fileName = "allfns_slidingwindow_run$exprName", sep = ",")
 					end
 
 					firstTime = false
