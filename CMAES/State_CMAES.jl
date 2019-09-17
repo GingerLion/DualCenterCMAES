@@ -38,6 +38,13 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 		(n, λ, μ, direction) = (sys.rParms.N, sys.sParms.λ, sys.sParms.μ, sys.sParms.direction)
 		state.nModel = model
 		state.nModel_shadow = deepcopy(model)
+		# aggressive weight test for regular CMA-ES
+		#state.nModel.parms.w = Weights(normalize(map((i)->(1.5 * exp(-1.5*i)), 1:state.nModel.parms.μ), 1))
+		#state.nModel.parms.μ_eff = 1 / sum(map((i)->(state.nModel.parms.w[i])^2,1:state.nModel.parms.μ))
+		# weak weight test for regular CMA-ES
+		# DONT FORGET THAT THESE TWO LINES BELOW ARE REPLICATED BELOW because of the CRN MECHANISM
+		#state.nModel.parms.w = Weights(normalize(map((i)->(log(2state.nModel.parms.μ) - log(i)), 1:state.nModel.parms.μ), 1))
+		#state.nModel.parms.μ_eff = 1 / sum(map((i)->(state.nModel.parms.w[i])^2,1:state.nModel.parms.μ))
 		state.sys = sys
 		state.gen = 0
 		state.gen_shadow = state.gen
@@ -59,6 +66,8 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 		state.firstRequest = :none
 		state.stopEvals = false
 		state.stopEvals_ = false
+		state.good_count = 0
+		state.bad_count = 0
 		evolvable!(state)
 		evolvable!_(state)
 	else
@@ -70,6 +79,8 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 		if hastocatchup(state) == :dualcenter
 			evolvable!_(state)
 			state.stopEvals_ = false
+			state.good_count = 0
+			state.bad_count = 0
 			state.nModel_shadow = model
 			state.nModel_shadow.parms = Model_Parms(n, f; μ = μ, λ = λ)
 			state.gen_shadow = 0
@@ -85,6 +96,9 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 			state.stopEvals = false
 			state.nModel = model
 			state.nModel.parms = Model_Parms(n, f; μ = μ, λ = λ)
+			# weak weight test for regular CMA-ES
+			#state.nModel.parms.w = Weights(normalize(map((i)->(log(2state.nModel.parms.μ) - log(i)), 1:state.nModel.parms.μ), 1))
+			#state.nModel.parms.μ_eff = 1 / sum(map((i)->(state.nModel.parms.w[i])^2,1:state.nModel.parms.μ))
 			state.gen = 0
 			state.evalCount = 0
 			state.nW = ZeroNoise(ShapedNoise, n, λ)
@@ -97,6 +111,8 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 		if maxContinueSystem(state) == :dualcenter
 			evolvable!_(state)
 			state.stopEvals_ = false
+			state.good_count = 0
+			state.bad_count = 0
 			state.nModel_shadow = model
 			state.nModel_shadow.parms = Model_Parms(n, f; μ = μ, λ = λ)
 			state.gen_shadow = 0
@@ -112,6 +128,9 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 			state.stopEvals = false
 			state.nModel = model
 			state.nModel.parms = Model_Parms(n, f; μ = μ, λ = λ)
+			# weak weight test for regular CMA-ES
+			#state.nModel.parms.w = Weights(normalize(map((i)->(log(2state.nModel.parms.μ) - log(i)), 1:state.nModel.parms.μ), 1))
+			#state.nModel.parms.μ_eff = 1 / sum(map((i)->(state.nModel.parms.w[i])^2,1:state.nModel.parms.μ))
 			state.gen = 0
 			state.evalCount = 0
 			state.nW = ZeroNoise(ShapedNoise, n, λ)
@@ -182,6 +201,13 @@ population_shadow(c::CMAES_State) = c.sOffspring_shadow
 stopEvals(state::CMAES_State) = state.stopEvals
 stopEvals_(state::CMAES_State) = state.stopEvals_
 
+good_count(state::CMAES_State) = state.good_count
+bad_count(state::CMAES_State) = state.bad_count
+
+inc_good!(state::CMAES_State) = state.good_count = state.good_count += 1
+inc_bad!(state::CMAES_State) = state.bad_count = state.bad_count += 1
+center_if(state::CMAES_State) = state.center_if[1]
+center_if_fit(state::CMAES_State) = state.center_if[2]
 
 # note: currently during evolution parents are in :post while :parents holds parents of the parents
 #       after evolution parents are in :parents and :post holds the post selection population

@@ -99,6 +99,8 @@ mutable struct EA_ReReturnInfo <: ReReturnInfo
   totalEvals::List
   totalEvals_::List
   stagnation::List
+  bad_count::List
+  good_count::List
 end
 
 

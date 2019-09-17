@@ -114,8 +114,8 @@ function update!(restart::RestartState, state::State, sys::System)
   if evolvable(state) restart.bfHist[] = bestfitness(best(state)) end
   if evolvable_(state)
       restart.bfHist_[] = bestfitness(best_(state))
-      updateSlidingWindow(state, restart)
-      #updateEliteWindowUnSorted(state, restart)
+      #updateSlidingWindow(state, restart)
+      updateEliteWindowUnSorted(state, restart)
       #updateEliteWindowSorted(state, restart)
   end
 
@@ -159,7 +159,7 @@ function canEnterWindow(newFit::Float64, historyWindow::Vector{Float64}, directi
     end
     return canEnter
 end
-
+# constantly moving sliding window, solutions will only last windowSize generations
 function updateSlidingWindow(state::State, restart::RestartState)
     restart.bcHist_[] = bestchromosome(best_(state))
     len = length(history(restart.bcHist_))
@@ -178,37 +178,38 @@ function updateSlidingWindow(state::State, restart::RestartState)
     updateCenter!_(state, restart, history(restart.bcHist_))
 end
 
+#keeps the best solutions at all times but doenst sort them
 function updateEliteWindowUnSorted(state::State, restart::RestartState)
     if !isWindowFull(restart)
         restart.bcHist_[] = bestchromosome(best_(state)) #note that this is a list with its own setindex! function
-        println("Chromosome Window => $(history(restart.bcHist_))\n")
+        #println("Chromosome Window => $(history(restart.bcHist_))\n")
         restart.bcHist_fitnesses_[] = bestfitness(best_(state))
-        println("Fitness Window => $(history(restart.bcHist_fitnesses_))\n")
-        println("Window is not full. Length of window is $(length(history(restart.bcHist_)))\n")
+        #println("Fitness Window => $(history(restart.bcHist_fitnesses_))\n")
+        #println("Window is not full. Length of window is $(length(history(restart.bcHist_)))\n")
     elseif isWindowFull(restart) && canEnterWindow(deepcopy(bestfitness(best_(state))), history(restart.bcHist_fitnesses_), direction(restart.bcHist_))
-        println("-----------------------------------------\n Can enter window.")
+        #println("-----------------------------------------\n Can enter window.")
         tmp = deepcopy(history(restart.bcHist_))
-        println("tmp before delete => $(tmp)\n")
+        #println("tmp before delete => $(tmp)\n")
         deleteat!(tmp,length(restart.bcHist_)) #delete at 10 (oldest member of list)
-        println("tmp after delete => $(tmp)\n")
-        println("fitness window before delete => $(history(restart.bcHist_fitnesses_))\n")
+        #println("tmp after delete => $(tmp)\n")
+        #println("fitness window before delete => $(history(restart.bcHist_fitnesses_))\n")
         deleteat!(restart.bcHist_fitnesses_.history, 1) # delete at 1 (oldest fitness of the vector)
-        println("fitness window after delete => $(history(restart.bcHist_fitnesses_))\n")
+        #println("fitness window after delete => $(history(restart.bcHist_fitnesses_))\n")
         restart.bcHist_.history = nil() #empty list
         #dont have to empty fitness vector
         for i in Iterators.reverse(tmp) #put old values back from tmp to the List
           restart.bcHist_.history = cons(i, restart.bcHist_.history) # List
         end
         restart.bcHist_.history = cons(bestchromosome(best_(state)), restart.bcHist_.history) # add new chromosome (most recent and head of list)
-        println("Chromosome Window with new chromosome => $(history(restart.bcHist_))\n")
+        #println("Chromosome Window with new chromosome => $(history(restart.bcHist_))\n")
         push!(restart.bcHist_fitnesses_.history, bestfitness(best_(state))) # append new fitness of new chromosome (most recent at end of vector)
-        println("fitness window after new fitness => $(history(restart.bcHist_fitnesses_))\n-----------------------------------------")
+        #println("fitness window after new fitness => $(history(restart.bcHist_fitnesses_))\n-----------------------------------------")
         #println("Couldn't enter window.")
     end
     #update center_
     updateCenter!_(state, restart, history(restart.bcHist_))
 end
-
+#keeps the best solutions and also keeps the sorted
 function updateEliteWindowSorted(state::State, restart::RestartState)
     if !isWindowFull(restart)
         #println("Window not full.")
@@ -265,7 +266,7 @@ end
 function updateCenter!_(state::State, restart::RestartState, window::Array)
     len = length(history(restart.bcHist_))
     if len > 1
-        w = Weights(normalize(map((i)->(log(len + 15 + (4 * log(chrlength(state)))) - log(i)), 1:len), 1))
+        w = Weights(LinearAlgebra.normalize(map((i)->(log(15 + (4 * log(chrlength(state)))) - log(i)), 1:len), 1))
         center!_(state, sum(map((x)->w[x] * window[x],1:length(w))))
     else
         try

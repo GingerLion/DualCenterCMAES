@@ -260,9 +260,9 @@ function ShapedNoise(sphere::SphericalNoise, model::CMAES_Model; dualcenter = fa
         end
 
         if best_λ >= 0
-            shaped_best = ShapedNoise(members(shaped[:chr,1:best_λ]))
+            shaped_best = ShapedNoise(members(shaped[:chr,orig_λ+1:size]))
             a = 0
-            for i = (size-best_λ+1):size
+            for i = (orig_λ+1):size
                 a += 1
                 shaped_best[a] = spheretoshaped(sphere[:chr, i], model)
             end

@@ -26,7 +26,7 @@ function Model_Parms(n::Integer, f::RealFitness;
                      λ = 4 + floor(Int, 3 * log(n)),
                      μ = floor(Int, λ/2),
                      μ_ = μ + 0.5,            # originally (λ + 1)/2 -> changed because we might not want μ = λ/2
-                     w = normalize(map((i)->(log(μ_) - log(i)), 1:μ), 1),
+                     w = LinearAlgebra.normalize(map((i)->(log(μ_) - log(i)), 1:μ), 1),
                      #w = fill(1/μ,μ),
                      #μ_eff = 1 / sum(map(i->(abs(w[i])^(2-(log(μ)/n))),1:μ)),
                      μ_eff = 1 / sum(map((i)->(w[i])^2,1:μ)),
@@ -161,6 +161,15 @@ function invsqrtC!(m::CMAES_Model)
   end
 end
 
+function invC(model::CMAES_Model)
+    try
+        LinearAlgebra.inv(covar_(model))
+    catch
+        m = fill(NaN,N(model),N(model))
+        m
+    end
+end
+
 function eigendecomp!(m::CMAES_Model)
   try
     (m.γ, m.B) = eigen(m.C)
@@ -215,6 +224,7 @@ sigma(model::CMAES_Model) = model.σ
 #sigma_(model::CMAES_Model) = model.σ_
 #sigma!_(model::CMAES_Model, σ_::Float64) = model.σ_ = σ_
 covar(model::CMAES_Model) = model.C
+covar_(model::CMAES_Model) = deepcopy(model.C)
 +(m::CMAES_Model, n::Noise) = n + m
 weights(model::CMAES_Model) = model.parms.w
 direction(model::CMAES_Model) = model.parms.direction
@@ -273,15 +283,41 @@ C_part2(model::CMAES_Model) = c_1(model) * (p_c(model) * p_c(model)')
 C_part3(model::CMAES_Model, n::Noise) = c_μ(model) * covariance(n, weights(model))
 
 # note: order of the updates is important. Each update is dependant on the previous updates having been run.
-function update!(model::CMAES_Model, W::ShapedNoise, gen::Integer)
-    center!(model, weightedavg(W))
-    stepsize!(model, weightedavg(W))
-    h_σ!(model, gen)
-    covarmatrix!(model, W)
+function update!(model::CMAES_Model, W::ShapedNoise, gen::Integer, systemType::Symbol)
+    if systemType == :whatif
+        return (center(model) + (sigma(model) * weightedavg(W)))
+    else
+        center!(model, weightedavg(W))
+        stepsize!(model, weightedavg(W))
+        h_σ!(model, gen)
+        covarmatrix!(model, W)
+    end
+    #=if systemType == :dualcenter
+        adaptive_weights!(model)
+    end=#
 end
 
-function update(model::CMAES_Model, W::ShapedNoise, gen::Integer)
+function update(model::CMAES_Model, W::ShapedNoise, gen::Integer, systemType::Symbol)
     model = deepcopy(model)
-    update!(model, W, gen)
-    model
+    if systemType != :whatif
+        update!(model, W, gen, systemType)
+        model
+    else
+        update!(model, W, gen, systemType)
+    end
+end
+
+function adaptive_weights!(model::CMAES_Model)
+    μ = mu(model)
+    μ_ = μ + 0.5
+    σ = sigma(model)
+
+    if σ > 1.0 # pull back more (weak)
+        #model.parms.w = Weights(LinearAlgebra.normalize(map((i)->(log((1 + abs(log(σ)))*μ_) - log(i)),1:μ),1))
+        model.parms.w = Weights(LinearAlgebra.normalize(map((i)->(log(σ*μ_) - log(i)),1:μ),1)) #σ >= 1 always
+        model.parms.μ_eff = 1 / sum(map((i)->(model.parms.w[i])^2,1:μ))
+    elseif σ < 1.0  #pull back less (aggressive)
+        Weights(LinearAlgebra.normalize(map((i)->(exp(-(1.25-σ)*i)),1:μ),1)) # σ <= 1 always
+        model.parms.μ_eff = 1 / sum(map((i)->(model.parms.w[i])^2,1:μ))
+    end
 end

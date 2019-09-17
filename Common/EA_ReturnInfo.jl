@@ -52,7 +52,7 @@ returnstate(ri::ReturnInfo) = ri.state
 function ReReturnInfo(state::State, runInfo::Monitor)
 	bestMember = best(state)
     bestMember_shadow = best_(state)
-    EA_ReReturnInfo(nil(), runInfo, (bestMember[1], bestMember[2], 1), (bestMember_shadow[1], bestMember_shadow[2], 1), nil(), nil(), nil(), nil(), nil(), nil())
+    EA_ReReturnInfo(nil(), runInfo, (bestMember[1], bestMember[2], 1), (bestMember_shadow[1], bestMember_shadow[2], 1), nil(), nil(), nil(), nil(), nil(), nil(),nil(),nil())
 end
 
 #--------------------------------------
@@ -66,6 +66,8 @@ function update!(rinfo::ReReturnInfo, state::State, restart::RestartState)
   rinfo.totalEvals  = cons(evals(restart), rinfo.totalEvals)
   rinfo.totalEvals_  = cons(evals_(restart), rinfo.totalEvals_)
   rinfo.stagnation  = cons(stagnflags(restart), rinfo.stagnation)
+  rinfo.good_count = cons(good_count(state), rinfo.good_count)
+  rinfo.bad_count = cons(bad_count(state), rinfo.bad_count)
 
   if better(state, rinfo.best)
     rinfo.best = (bestchromosome(state), bestfitness(state), rep(restart))
@@ -84,6 +86,8 @@ function reverse!(rinfo::ReReturnInfo)
   rinfo.totalEvals = reverse(rinfo.totalEvals)
   rinfo.totalEvals_  = reverse(rinfo.totalEvals_)
   rinfo.stagnation = reverse(rinfo.stagnation)
+  rinfo.good_count = reverse(rinfo.good_count)
+  rinfo.bad_count = reverse(rinfo.bad_count)
 end
 
 function collect!(rinfo::ReReturnInfo)
@@ -94,6 +98,8 @@ function collect!(rinfo::ReReturnInfo)
   rinfo.totalEvals = collect(rinfo.totalEvals)
   rinfo.totalEvals_  = collect(rinfo.totalEvals_)
   rinfo.stagnation = collect(rinfo.stagnation)
+  rinfo.good_count = collect(rinfo.good_count)
+  rinfo.bad_count = collect(rinfo.bad_count)
 end
 
 

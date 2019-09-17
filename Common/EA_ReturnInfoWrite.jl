@@ -9,7 +9,9 @@ function write_final_header(fileName::String, rinfo::ReReturnInfo, prefixNames::
     write(f, "found$(sep)")
     write(f, "normal evals$(sep)")
     write(f, "dualcenter evals$(sep)")
-    write(f, "bestRestart$(sep)")
+    #write(f, "bestRestart$(sep)")
+    write(f, "good_count$(sep)")
+    write(f, "bad_count$(sep)")
     write(f, "normal_bestFit$(sep)")
     write(f, "dual_bestFit\n")
     #write(f, "normal_bestChr$(sep)")
@@ -34,6 +36,8 @@ function write_final(rinfo::ReReturnInfo; prefixValues = [], prefixNames = [], i
   totalEvals_ = last(rinfo.totalEvals_)
   restart = length(rinfo.state) - 1
   foundSol = ""
+  good_count = last(rinfo.good_count)
+  bad_count = last(rinfo.bad_count)
   (bestChr, bestFit, bestRestart) = rinfo.best
   (bestChr_, bestFit_, bestRestart_) = rinfo.best_shadow
 
@@ -53,7 +57,9 @@ function write_final(rinfo::ReReturnInfo; prefixValues = [], prefixNames = [], i
     write(f, "$foundSol$(sep)")
     write(f, "$totalEvals$(sep)")
     write(f, "$totalEvals_$(sep)")
-    write(f, "$bestRestart$(sep)")
+    #write(f, "$bestRestart$(sep)")
+    write(f, "$good_count$(sep)")
+    write(f, "$bad_count$(sep)")
     write(f, "$bestFit$(sep)")
     write(f, "$bestFit_\n")
     #write(f, "$bestChr$(sep)")

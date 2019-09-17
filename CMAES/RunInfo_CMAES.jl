@@ -40,6 +40,8 @@ function update_scales!(runInfo::RunInfo, source::SelectionSource, state::CMAES_
 	best_score = 0.0
 	orig_scale = 0.0
 	best_scale = 0.0
+
+
 	orig_upper = 0.0
 	orig_middle = 0.0
 	orig_lower = 0.0
@@ -188,19 +190,32 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   src = SelectionSource(sourcevalues(runInfo), state)
   runInfo[:source] = deepcopy(src)
   runInfo[:center_shadow_source] = first(src.source)
-  # uncomment only when update_scales!(runInfo, src, state) is commented out - runInfo.sourceValues = SelectionSourceParms(system(state), postModel_shadow)
-  update_scales!(runInfo, src, state)
+  # uncomment only when update_scales!(runInfo, src, state) is commented out -
+  runInfo.sourceValues = SelectionSourceParms(system(state), postModel_shadow)
+  #update_scales!(runInfo, src, state)
 
   #stepsize!_(src, postModel_shadow)
   #online update of model parms
   #update!(src, postModel, system(state))
   # system state information - shadowged
-  runInfo[:best_fit] = bestfitness(state)
-  runInfo[:best_shadow_fit] = bestfitness_(state)
+  #runInfo[:best_fit] = bestfitness(state)
+  #runInfo[:best_shadow_fit] = bestfitness_(state)
+  runInfo[:best_overall] = bestfitoverall(state)
+  runInfo[:best_overall_] = bestfitoverall_(state)
   runInfo[:center_shadow]  = (state_center_shadow[:chr, 1], state_center_shadow[:fit, 1])
   runInfo[:center_shadow_] = (state_center_shadow_[:chr, 1], state_center_shadow_[:fit, 1])
-  runInfo[:dcs_centerDiff] = norm(state_center_shadow_[:chr, 1] - state_center_shadow[:chr, 1])
+  runInfo[:euc_centerDiff] = norm(state_center_shadow_[:chr, 1] - state_center_shadow[:chr, 1])
+  try
+ 	runInfo[:mahalanobis_centerDiff] = sqrt((state_center_shadow_[:chr, 1] - state_center_shadow[:chr, 1])' * invC(postModel_shadow) * (state_center_shadow_[:chr, 1] - state_center_shadow[:chr, 1]))
+  catch
+	runInfo[:mahalanobis_centerDiff] = NaN
+  end
   runInfo[:firstRequest] = firstRequest(state)
+  runInfo[:good_count] = good_count(state)
+  runInfo[:bad_count] = bad_count(state)
+  runInfo[:center_if] = center_if(state)
+  runInfo[:center_if_fit] = center_if_fit(state)
+
   #   Mirroring state
   #   note: currently does not include mirror of covar, signma or paths,
   #		    i.e. only center is mirrored from the model
