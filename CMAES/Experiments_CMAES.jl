@@ -31,12 +31,12 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 
 					if summary
 						write_final(ipop; prefixNames = prefixNames, prefixValues = prefixValues,
-						            	  initialize = firstTime, path = outputPath, fileName = "allfns_30runs_final$exprName")
+						            	  initialize = firstTime, path = outputPath, fileName = "allfns_5runs_final$exprName")
 					end
 
 					if monitored
 						write_run(ipop, sys, f; prefixNames = prefixNames, prefixValues = prefixValues,
-					   			    	     	initialize = firstTime, path = outputPath, fileName = "allfns_30runs_run$exprName", sep = ",")
+					   			    	     	initialize = firstTime, path = outputPath, fileName = "allfns_5runs_run$exprName", sep = ",")
 					end
 
 					firstTime = false
@@ -47,4 +47,4 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 end
 
 expr_path = "$(base_path)/Experiments/fixedbudgetruns"
-runexpr("#dual-center", reps = 30, outputPath = expr_path, monitored = true)
+runexpr("#dual-center", reps = 5, outputPath = expr_path, monitored = true)

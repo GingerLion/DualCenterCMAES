@@ -72,6 +72,6 @@ function runEA(sys::CMAES_System, rsys::CMAES_RestartBase, f::RealFitness; cente
   rsys = CMAES_RestartFull(rsys, state, center_init, σ_init)
   restart = RestartState(rsys, state)
   ea = runEA(state, restart, f, runInfo, returnInfo, verbose)
-  resetMaxEvals!(sys, max_evals)
+  #resetMaxEvals!(sys, max_evals) commented out because it's fixed budget
   ea
 end
