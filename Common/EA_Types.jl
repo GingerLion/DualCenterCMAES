@@ -93,6 +93,8 @@ mutable struct EA_ReReturnInfo <: ReReturnInfo
   runInfo::Monitor
   best::Tuple         # three tuple (chr, fit, rep) where rep is the repitition/restart that found the best
   best_shadow::Tuple
+  best_overall::Tuple
+  best_overall_::Tuple
   popnSize::List      # list of (mu, lambda) pairs for CMAES
   localEvals::List
   localEvals_::List

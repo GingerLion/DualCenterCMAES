@@ -10,7 +10,8 @@ end
 # Example of running mulitple experiments and writing ReturnInfo
 # IMPORTANT: never turn monitored to false. The dualcenter algorithm now uses the monitor data in it's model
 function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, monitored = true)
-	prefixNames = ["fn", "dim", "elitism", "ctr", "run"]
+	#prefixNames = ["fn", "dim", "elitism", "ctr", "run"]
+	prefixNames = ["fn", "dim","run"]
 	firstTime = true
 	for n = [5,10,25,50]
 		testFn = generatetests(n, 0.0; ε = 0.0)
@@ -24,19 +25,20 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 				rsys = CMAES_Restart(; η = 2.0)
 				deg = 5.0
 				for expr = 1:reps
-					prefixValues = [name, n, elitism, includeCenter, expr]
+					#prefixValues = [name, n, elitism, includeCenter, expr]
+					prefixValues = [name, n, expr]
 					println("\n\n-------------------------------------------------------------------------------------------------------------")
 					println("Fn = $name, dim = $n, elitism = $elitism, includeCenter = $includeCenter, run = $(expr)/$reps")
 					ipop = runEA(sys, rsys, f; center_init = r_UnitShell, σ_init = 1.0, verbose = RestartLevel(), monitoring = monitored)
 
 					if summary
 						write_final(ipop; prefixNames = prefixNames, prefixValues = prefixValues,
-						            	  initialize = firstTime, path = outputPath, fileName = "allfns_5runs_final$exprName")
+						            	  initialize = firstTime, path = outputPath, fileName = "allfns_50runs_final$exprName")
 					end
 
 					if monitored
 						write_run(ipop, sys, f; prefixNames = prefixNames, prefixValues = prefixValues,
-					   			    	     	initialize = firstTime, path = outputPath, fileName = "allfns_5runs_run$exprName", sep = ",")
+					   			    	     	initialize = firstTime, path = outputPath, fileName = "allfns_50runs_run$exprName", sep = ",")
 					end
 
 					firstTime = false

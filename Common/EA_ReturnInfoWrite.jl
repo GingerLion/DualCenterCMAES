@@ -3,10 +3,10 @@ function write_final_header(fileName::String, rinfo::ReReturnInfo, prefixNames::
     for name in prefixNames
       write(f, "$name$sep")
 	  end
-    write(f, "restart$(sep)")
+    #write(f, "restart$(sep)")
     write(f, "popnSize$(sep)")
     write(f, "popnSize_$(sep)")
-    write(f, "found$(sep)")
+    write(f, "winner$(sep)")
     write(f, "normal evals$(sep)")
     write(f, "dualcenter evals$(sep)")
     #write(f, "bestRestart$(sep)")
@@ -29,12 +29,11 @@ function write_final(rinfo::ReReturnInfo; prefixValues = [], prefixNames = [], i
   end
 
   state = last(rinfo.state)
-  #popnSize = last(rinfo.popnSize)
   popnSize = popnsize(state.nOffspring)
   popnSize_ = popnsize(state.nOffspring_shadow)
   totalEvals = last(rinfo.totalEvals)
   totalEvals_ = last(rinfo.totalEvals_)
-  restart = length(rinfo.state) - 1
+  #restart = length(rinfo.state) - 1
   foundSol = ""
   good_count = last(rinfo.good_count)
   bad_count = last(rinfo.bad_count)
@@ -53,7 +52,7 @@ function write_final(rinfo::ReReturnInfo; prefixValues = [], prefixNames = [], i
   	for value in prefixValues
   	  write(f, "$value$sep")
   	end
-    write(f, "$restart$(sep)")
+    #write(f, "$restart$(sep)")
     write(f, "$popnSize$(sep)")
     write(f, "$popnSize_$(sep)")
     write(f, "$foundSol$(sep)")

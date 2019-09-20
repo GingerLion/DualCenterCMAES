@@ -50,11 +50,11 @@ returnstate(ri::ReturnInfo) = ri.state
 # ReReturnInfo - Constructors
 
 function ReReturnInfo(state::State, runInfo::Monitor)
-	#bestMember = best(state)
-    #bestMember_shadow = best_(state)
-    bestMember = best_overall(state)
-    bestMember_shadow= best_overall_(state)
-    EA_ReReturnInfo(nil(), runInfo, (bestMember[1], bestMember[2], 1), (bestMember_shadow[1], bestMember_shadow[2], 1), nil(), nil(), nil(), nil(), nil(), nil(),nil(),nil())
+	bestMember = best(state)
+    bestMember_shadow = best_(state)
+    bestMember_ovr = best_overall(state)
+    bestMember_shadow_ovr = best_overall_(state)
+    EA_ReReturnInfo(nil(), runInfo, (bestMember[1], bestMember[2], 1), (bestMember_shadow[1], bestMember_shadow[2], 1), (bestMember_ovr[1], bestMember_ovr[2]), (bestMember_shadow_ovr[1], bestMember_shadow_ovr[2]), nil(), nil(), nil(), nil(), nil(), nil(),nil(),nil())
 end
 
 #--------------------------------------
@@ -70,6 +70,9 @@ function update!(rinfo::ReReturnInfo, state::State, restart::RestartState)
   rinfo.stagnation  = cons(stagnflags(restart), rinfo.stagnation)
   rinfo.good_count = cons(good_count(state), rinfo.good_count)
   rinfo.bad_count = cons(bad_count(state), rinfo.bad_count)
+
+  rinfo.best_overall = best_overall(state)
+  rinfo.best_overall_ = best_overall_(state)
   #println("NORMAL: checking if the generation best -> $(bestfitness(state)) is better than the current best -> $(rinfo.best[2])")
   #println("DUALCENTER: checking if the generation best -> $(bestfitness_(state)) is better than the current best -> $(rinfo.best_shadow[2])")
   if better(state, rinfo.best)
