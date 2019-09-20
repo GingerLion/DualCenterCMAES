@@ -38,8 +38,10 @@ function write_final(rinfo::ReReturnInfo; prefixValues = [], prefixNames = [], i
   foundSol = ""
   good_count = last(rinfo.good_count)
   bad_count = last(rinfo.bad_count)
-  (bestChr, bestFit, bestRestart) = rinfo.best
-  (bestChr_, bestFit_, bestRestart_) = rinfo.best_shadow
+  #(bestChr, bestFit, bestRestart) = rinfo.best
+  #(bestChr_, bestFit_, bestRestart_) = rinfo.best_shadow
+  (bestChr, bestFit) = best_overall(state)
+  (bestChr_, bestFit_) = best_overall_(state)
 
   if maximizing(state)
        (bestFit > bestFit_) ? foundSol = "normal" : foundSol = "dualcenter"

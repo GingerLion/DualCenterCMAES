@@ -40,7 +40,7 @@ function runEA(state::State, restart::RestartState, f::Fitness,
     elseif found_(state) && !found(state)
         system(state).maxEvals = first(runInfo[:total_evals_])
     end=#
-    
+
     #println("runEA: status = $(status(state)), status_shadow = $(status_(state)), maxEvals = $(system(state).maxEvals)")
     evolve!(state, f, restart, runInfo, verbose)
   end

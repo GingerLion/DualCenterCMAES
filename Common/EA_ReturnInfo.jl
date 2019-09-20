@@ -50,8 +50,10 @@ returnstate(ri::ReturnInfo) = ri.state
 # ReReturnInfo - Constructors
 
 function ReReturnInfo(state::State, runInfo::Monitor)
-	bestMember = best(state)
-    bestMember_shadow = best_(state)
+	#bestMember = best(state)
+    #bestMember_shadow = best_(state)
+    bestMember = best_overall(state)
+    bestMember_shadow= best_overall_(state)
     EA_ReReturnInfo(nil(), runInfo, (bestMember[1], bestMember[2], 1), (bestMember_shadow[1], bestMember_shadow[2], 1), nil(), nil(), nil(), nil(), nil(), nil(),nil(),nil())
 end
 
@@ -68,14 +70,14 @@ function update!(rinfo::ReReturnInfo, state::State, restart::RestartState)
   rinfo.stagnation  = cons(stagnflags(restart), rinfo.stagnation)
   rinfo.good_count = cons(good_count(state), rinfo.good_count)
   rinfo.bad_count = cons(bad_count(state), rinfo.bad_count)
-
+  #println("NORMAL: checking if the generation best -> $(bestfitness(state)) is better than the current best -> $(rinfo.best[2])")
+  #println("DUALCENTER: checking if the generation best -> $(bestfitness_(state)) is better than the current best -> $(rinfo.best_shadow[2])")
   if better(state, rinfo.best)
     rinfo.best = (bestchromosome(state), bestfitness(state), rep(restart))
   end
   if better_(state, rinfo.best_shadow)
     rinfo.best_shadow = (bestchromosome_(state), bestfitness_(state), rep(restart))
   end
-
 end
 
 function reverse!(rinfo::ReReturnInfo)
