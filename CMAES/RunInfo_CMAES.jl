@@ -32,8 +32,8 @@ function update_scales!(runInfo::RunInfo, source::SelectionSource, state::CMAES_
 	len = length(source.fitness)
 	model = currentmodel_(state)
 	μ = choose_μ(state)
-
-	w = Weights(normalize(map((i)->(log(μ+chrlength(state)) - log(i)), 1:μ), 1)) #less pressure than log(μ+0.5)
+	#println("TEST: \npopn = $(members(population(state)))\n\n sOffspring_shadow = $(members(population_(state)))")
+	w = Weights(LinearAlgebra.normalize(map((i)->(log(μ+chrlength_(state)) - log(i)), 1:μ), 1)) #less pressure than log(μ+0.5)
 	#w = Weights(normalize(map((i)->(log(2μ) - log(i)), 1:μ), 1))
 	#w = Weights(fill(1/μ, μ))
 	orig_score = 0.0
@@ -100,7 +100,7 @@ function update_scales!(runInfo::RunInfo, source::SelectionSource, state::CMAES_
 	#orig_scale!(model, 1.5)
 	#best_scale!(model, 0.5)
     #println("RunInfo_CMAES.jl::63 -> new orig_scale = $(orig_scale), best_scale = $(best_scale)")
-	#now update SelectionSourceParms a.k.a rinfo.sourcevalues to reflect new ratio or orig_λ to best_λ
+	#now update SelectionSourceParms a.k.a rinfo.sourcevalues to reflect new ratio of orig_λ to best_λ
 	runInfo.sourceValues = SelectionSourceParms(system(state), model)
 	#println("starting gen with source = $(sourcevalues(sourcevalues(runInfo)))")
 end
@@ -192,7 +192,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   runInfo[:center_shadow_source] = first(src.source)
   # uncomment only when update_scales!(runInfo, src, state) is commented out -
   runInfo.sourceValues = SelectionSourceParms(system(state), postModel_shadow)
-  #update_scales!(runInfo, src, state)
+  update_scales!(runInfo, src, state)
 
   #stepsize!_(src, postModel_shadow)
   #online update of model parms

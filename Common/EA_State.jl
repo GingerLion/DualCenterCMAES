@@ -59,11 +59,17 @@ end
 
 system(state::State) = state.sys
 population(state::State) = state.popn
+population_(state::State) = state.sOffspring_shadow
 popnsize(state::State) = popnsize(population(state))
+popnsize_(state::State) = popnsize(population_(state))
 chrlength(state::State) = chrlength(population(state))
+chrlength_(state::State) = chrlength(population_(state))
 dimensions(state::State) = chrlength(population(state))
+dimensions_(state::State) = chrlength(population_(state))
 maximizing(state::State) = maximizing(population(state))
+maximizing_(state::State) = maximizing(population_(state))
 direction(state::State) = direction(population(state))
+direction_(state::State) = direction(population_(state))
 best!(state::State) = (state.best = best(population(state)))
 best(state::State) = state.best
 best_(state::State) = state.best_shadow
@@ -80,11 +86,11 @@ bestfitoverall_(state::State) = bestfitness(best_overall_(state))
 
 better(state1::State, state2::Union{State,Tuple}) = (maximizing(state1) ? bestfitness(state1) > bestfitness(state2)
 																 			  : bestfitness(state1) < bestfitness(state2))
-better_(state1::State, state2::Union{State,Tuple}) = (maximizing(state1) ? bestfitness_(state1) > bestfitness(state2)
+better_(state1::State, state2::Union{State,Tuple}) = (maximizing_(state1) ? bestfitness_(state1) > bestfitness(state2)
 																			  : bestfitness_(state1) < bestfitness(state2))
 better_overall(state1::State, state2::Union{State, Tuple}) = (maximizing(state1) ? bestfitoverall(state1) > bestfitness(state2)
 																				   : bestfitoverall(state1) < bestfitness(state2))
-better_overall_(state1::State, state2::Union{State, Tuple}) = (maximizing(state1) ? bestfitoverall_(state1) > bestfitness(state2)
+better_overall_(state1::State, state2::Union{State, Tuple}) = (maximizing_(state1) ? bestfitoverall_(state1) > bestfitness(state2)
 																					: bestfitoverall_(state1) < bestfitness(state2))
 better(member::Tuple, state::State) = (maximizing(state) ? bestfitness(member) > bestfitness(state)
 															: bestfitness(member) < bestfitness(state))

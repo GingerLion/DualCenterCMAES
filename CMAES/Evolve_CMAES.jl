@@ -174,36 +174,45 @@ function evolvepopn!_(state::CMAES_State, f::RealFitness)
   end
   #add shadow popn and shadow popn generated from the 2nd center and their fitness values
   if !(typeof(nOffspring) <: Population)
+      println("nOffspring is not a population.")
       dualcenterpopn = nOffspring_
       dualcenternoise = nW_
+      dualcenterpopn_if = nOffspring_if
+      dualcenternoise_if = nW_
   elseif !(typeof(nOffspring_) <: Population)
+      println("nOffspring_ is not a population.")
       dualcenterpopn = nOffspring
       dualcenternoise = nW
   else
+      println("both are populations.")
       dualcenterpopn = pcat(nOffspring, nOffspring_)
       #add shadow noise and shadow_ noise generated from the 2nd center
       dualcenternoise = nW + nW_
       #WHAT IF
-      dualcenterpopn_if = pcat(nOffspring, nOffspring_if)
-      dualcenternoise_if = nW + nW_
+      if typeof(nOffspring_if) <: Population
+          #println("dualcenterpopn_if given a population.")
+          dualcenterpopn_if = pcat(nOffspring, nOffspring_if)
+          dualcenternoise_if = nW + nW_
+      end
   end
 
   (sOffspring, sW) = es_selection(state, model, f, dualcenterpopn, dualcenternoise, shadow = true)
-  # WHAT IF
-  (sOffspring_if, sW_if) = es_selection(state, model, f, dualcenterpopn_if, dualcenternoise_if, shadow = true)
-
   sW = manage_best_solutions(model, orig_λ, best_λ, sOffspring, sW)
   flatten!(sW, weights(model))
-  # WHAT IF
-  sW_if = manage_best_solutions(model, orig_λ, best_λ, sOffspring_if, sW_if)
-  flatten!(sW_if, weights(model))
 
   nModel_ = update(model, sW, gen, :dualcenter)
 
   # WHAT IF
-  center_if = update(model, sW_if, gen, :whatif)
-  center_if_mem = Member(center_if, f.objFn(center_if))
-  state.center_if = (chromosome(center_if_mem), fitness(center_if_mem))
+  if typeof(nOffspring_if) <: Population
+      (sOffspring_if, sW_if) = es_selection(state, model, f, dualcenterpopn_if, dualcenternoise_if, shadow = true)
+      sW_if = manage_best_solutions(model, orig_λ, best_λ, sOffspring_if, sW_if)
+      flatten!(sW_if, weights(model))
+      center_if = update(model, sW_if, gen, :whatif)
+      center_if_mem = Member(center_if, f.objFn(center_if))
+      state.center_if = (chromosome(center_if_mem), fitness(center_if_mem))
+  else
+      state.center_if = (fill(NaN,chrlength_(state)), NaN)
+  end
 
   update!_(state, nModel_, dualcenterpopn, sOffspring, dualcenternoise, sW)
 
@@ -243,7 +252,7 @@ function generatesamples_(model::CMAES_Model, nE)
     (nW_orig, nW_best) = ShapedNoise(nE, model, dualcenter = true)
     !(typeof(nW_orig) <: Noise) ? nOffspring = NaN : nOffspring = model + nW_orig
     !(typeof(nW_best) <: Noise) ? nOffspring_best = NaN : nOffspring_best = RegularPopulation(nW_best, sigma(model) * members(nW_best) .+ center_(model))
-    !(typeof(nW_best) <: Noise) ? nOffspring_if = NaN : nOffspring_if = model + nW_best
+    !(typeof(nW_best) <: Noise) ? (nOffspring_if = NaN; println("nOffspring_if not a population");) : (nOffspring_if = model + nW_best)
 
     if !(typeof(nW_orig) <: Noise) && (typeof(nW_best) <: Noise)
         (NaN, nOffspring_best, nE, NaN, nW_best, nOffspring_if)
