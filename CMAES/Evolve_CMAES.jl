@@ -174,17 +174,14 @@ function evolvepopn!_(state::CMAES_State, f::RealFitness)
   end
   #add shadow popn and shadow popn generated from the 2nd center and their fitness values
   if !(typeof(nOffspring) <: Population)
-      println("nOffspring is not a population.")
       dualcenterpopn = nOffspring_
       dualcenternoise = nW_
       dualcenterpopn_if = nOffspring_if
       dualcenternoise_if = nW_
   elseif !(typeof(nOffspring_) <: Population)
-      println("nOffspring_ is not a population.")
       dualcenterpopn = nOffspring
       dualcenternoise = nW
   else
-      println("both are populations.")
       dualcenterpopn = pcat(nOffspring, nOffspring_)
       #add shadow noise and shadow_ noise generated from the 2nd center
       dualcenternoise = nW + nW_
