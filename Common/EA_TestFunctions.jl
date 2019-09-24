@@ -36,7 +36,7 @@ end
 #---------------------------------------------
 
 # Rosenbrock :
-rosenbrock(x) = (1.0 - x[1])^2 + 100.0 * (x[2] - x[1]^2)^2
+rosenbrock(x) = sum(map((i) -> ((1.0 - x[i])^2 + 100.0 * (x[i+1] - x[i]^2)^2), 1:(length(x)-1)))
 rosenbrock() = typeof(rosenbrock([0.0, 0.0]))
 
 # Rastrigin :
@@ -49,7 +49,7 @@ rastrigin() = typeof(rastrigin([0.0 ,0.0]))
 
 # Swechfel
 
-# schwefel(x) =  418.982887 * length(x) - sum(x .* sin.(sqrt.(abs.(x))))
+schwefel(x) =  (418.982887 * length(x)) - sum(x .* sin.(sqrt.(abs.(x))))
 schwefel() = typeof(rastrigin([0.0 ,0.0]))
 
 function schwefel(x)
