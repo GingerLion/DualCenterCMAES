@@ -34,11 +34,16 @@ end
 #---------------------------------------------
 # Test Function Definitions
 #---------------------------------------------
-
+# VALLEY SHAPED FUNCTIONS (rosenbrock, dixon_price)
 # Rosenbrock :
 rosenbrock(x) = sum(map((i) -> ((1.0 - x[i])^2 + 100.0 * (x[i+1] - x[i]^2)^2), 1:(length(x)-1)))
 rosenbrock() = typeof(rosenbrock([0.0, 0.0]))
-
+# Dixon-Price :
+function dixon_price(x)
+	  term1 = (x[1] - 1)^2
+	  term2 = sum(map((i)->(i*(2x[i]^2 - x[i-1])^2),2:length(x)))
+	  term1 + term2
+end
 # Rastrigin :
 
 rastrigin(x) =  10.0 * length(x) + sum(x.^2 - 10.0cos.(2π * x))
@@ -46,6 +51,17 @@ rastrigin(x) =  10.0 * length(x) + sum(x.^2 - 10.0cos.(2π * x))
 rastrigin_(x) = rastrigin(x - ones(length(x)))
 
 rastrigin() = typeof(rastrigin([0.0 ,0.0]))
+
+
+
+# PLATE SHAPED FUNCTIONS
+# zakharov :
+function zakharov(x)
+       term1 = sum(x.^2)
+       term2 = sum(map((i)->(0.5*i*x[i]),1:length(x)))^2
+       term3 = sum(map((i)->(0.5*i*x[i]),1:length(x)))^4
+       term1 + term2 + term3
+end
 
 # Swechfel
 
@@ -127,7 +143,7 @@ function generatetests(n; ε = 1.0e-10)
 	EA_Test[:griewank] = UnBoundedFitness{Float64}(griewank, n, :min, 0.0, allZeros, ε)
 	EA_Test[:rastrigin] = UnBoundedFitness{Float64}(rastrigin, n, :min, 0.0, allZeros, ε)
 	EA_Test[:rastrigin_] = UnBoundedFitness{Float64}(rastrigin_, n, :min, 0.0, allZeros, ε)
-	EA_Test[:rosenbrock] = UnBoundedFitness{Float64}(rosenbrock, 2, :min, 0.0, allOnes, ε)
+	EA_Test[:rosenbrock] = UnBoundedFitness{Float64}(rosenbrock, n, :min, 0.0, allOnes, ε)
 	EA_Test[:schwefel] = UnBoundedFitness{Float64}(schwefel, n, :min, 0.0, allZeros, ε)
 	EA_Test[:sphere] = UnBoundedFitness{Float64}(sphere, n, :min, 0.0, allZeros, ε)
 	EA_Test[:elliptical] = UnBoundedFitness{Float64}(elliptical, n, :min, 0.0, allZeros, ε)
@@ -142,7 +158,7 @@ function boundedtests(n; ε = 1.0e-10)
 	EA_Test[:levy] = BoundedFitness{Float64}(levy, n, :min, 0.0, allOnes, ε, fill(10.0, n), fill(-10.0, n))
 	EA_Test[:griewank] = BoundedFitness{Float64}(griewank, n, :min, 0.0, allZeros, ε, fill(600.0, n), fill(-600.0, n))
 	EA_Test[:rastrigin] = BoundedFitness{Float64}(rastrigin, n, :min, 0.0, allZeros, ε, fill(5.12, n), fill(-5.12, n))
-	EA_Test[:rosenbrock] = BoundedFitness{Float64}(rosenbrock, 2, :min, 0.0, allOnes, ε, fill(sqrt(3), n), fill(-sqrt(3), n))
+	EA_Test[:rosenbrock] = BoundedFitness{Float64}(rosenbrock, n, :min, 0.0, allOnes, ε, fill(sqrt(3), n), fill(-sqrt(3), n))
 	EA_Test[:schwefel] = BoundedFitness{Float64}(schwefel, n, :min, 0.0, allZeros, ε, fill(512.0, n), fill(-512.0, n))
 	EA_Test[:sphere] = BoundedFitness{Float64}(sphere, n, :min, 0.0, allZeros, ε, fill(5.12, n), fill(-5.12, n))
 	EA_Test[:elliptical] = BoundedFitness{Float64}(elliptical, n, :min, 0.0, allZeros, ε, fill(65.536, n), fill(-65.536, n))
@@ -157,7 +173,9 @@ function generatetests(n, α˚; ε = 1.0e-10)
 	EA_Test[:levy] = UnBoundedFitness{Float64}(lineartransform(levy, n, α˚), n, :min, 0.0, allOnes, ε)
 	EA_Test[:griewank] = UnBoundedFitness{Float64}(lineartransform(griewank, n, α˚), n, :min, 0.0, allZeros, ε)
 	EA_Test[:rastrigin] = UnBoundedFitness{Float64}(lineartransform(rastrigin, n, α˚), n, :min, 0.0, allZeros, ε)
-	EA_Test[:rosenbrock] = UnBoundedFitness{Float64}(lineartransform(rosenbrock, n, α˚), 2, :min, 0.0, allOnes, ε)
+	EA_Test[:rosenbrock] = UnBoundedFitness{Float64}(lineartransform(rosenbrock, n, α˚), n, :min, 0.0, allOnes, ε)
+	EA_Test[:dixon_price] = UnBoundedFitness{Float64}(lineartransform(dixon_price, n, α˚), n, :min, 0.0,  map((i)->(2^-((2^i - 2)/2^i)), 1:n), ε)
+	EA_Test[:zakharov] = UnBoundedFitness{Float64}(lineartransform(zakharov, n, α˚), n, :min, 0.0, allZeros, ε)
 	EA_Test[:rastrigin_] = UnBoundedFitness{Float64}(rastrigin_, n, :min, 0.0, allZeros, ε)
 	EA_Test[:schwefel] = UnBoundedFitness{Float64}(lineartransform(schwefel, n, α˚), n, :min, 0.0, allZeros, ε)
 	EA_Test[:sphere] = UnBoundedFitness{Float64}(lineartransform(sphere, n, α˚), n, :min, 0.0, allZeros, ε)
@@ -173,7 +191,7 @@ function boundedtests(n, α˚; ε = 1.0e-10)
 	EA_Test[:levy] = BoundedFitness{Float64}(lineartransform(levy, n, α˚), n, :min, 0.0, allOnes, ε, fill(10.0, n), fill(-10.0, n))
 	EA_Test[:griewank] = BoundedFitness{Float64}(lineartransform(griewank, n, α˚), n, :min, 0.0, allZeros, ε, fill(600.0, n), fill(-600.0, n))
 	EA_Test[:rastrigin] = BoundedFitness{Float64}(lineartransform(rastrigin, n, α˚), n, :min, 0.0, allZeros, ε, fill(5.12, n), fill(-5.12, n))
-	EA_Test[:rosenbrock] = BoundedFitness{Float64}(lineartransform(rosenbrock, 2, α˚), 2, :min, 0.0, allOnes, ε, fill(sqrt(3), n), fill(-sqrt(3), n))
+	EA_Test[:rosenbrock] = BoundedFitness{Float64}(lineartransform(rosenbrock, n, α˚), n, :min, 0.0, allOnes, ε, fill(sqrt(3), n), fill(-sqrt(3), n))
 	EA_Test[:schwefel] = BoundedFitness{Float64}(lineartransform(schwefel, n, α˚), n, :min, 0.0, allZeros, ε, fill(512.0, n), fill(-512.0, n))
 	EA_Test[:sphere] = BoundedFitness{Float64}(lineartransform(sphere, n, α˚), n, :min, 0.0, allZeros, ε, fill(5.12, n), fill(-5.12, n))
 	EA_Test[:elliptical] = BoundedFitness{Float64}(lineartransform(elliptical, n, α˚), n, :min, 0.0, allZeros, ε, fill(65.536, n), fill(-65.536, n))
