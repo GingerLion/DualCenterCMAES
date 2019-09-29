@@ -164,14 +164,19 @@ function evolvepopn!_(state::CMAES_State, f::RealFitness)
   if (typeof(nOffspring) <: Population)  evaluate!(nOffspring, f)  end
   if (typeof(nOffspring_) <: Population) evaluate!(nOffspring_, f) end
   # THIS IS A WHAT IF
-  if (typeof(nOffspring_if) <: Population) evaluate!(nOffspring_if, f) end
+  if (typeof(nOffspring_if) <: Population)
+      evaluate!(nOffspring_if, f)
+      if mean(fitness(nOffspring_)) < mean(fitness(nOffspring_if))
+          inc_good!(state)
+      else
+          inc_bad!(state)
+      end
+  else
+      inc_good!(state)
+  end
   #println("center_orig fitnesses :\n $(fitness(nOffspring_shadow))")
   #println("center_best fitnesses :\n $(fitness(nOffspring_shadow_))")
-  if mean(fitness(nOffspring_)) < mean(fitness(nOffspring_if))
-      inc_good!(state)
-  else
-      inc_bad!(state)
-  end
+
   #add shadow popn and shadow popn generated from the 2nd center and their fitness values
   if !(typeof(nOffspring) <: Population)
       dualcenterpopn = nOffspring_

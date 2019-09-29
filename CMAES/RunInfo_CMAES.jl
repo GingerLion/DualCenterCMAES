@@ -189,7 +189,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   #runInfo[:fitsummary]	= fitsummary(selected, runInfo, decision)
   src = SelectionSource(sourcevalues(runInfo), state)
   runInfo[:source] = deepcopy(src)
-  runInfo[:center_shadow_source] = first(src.source)
+  evolvable_(state) ? runInfo[:center_shadow_source] = first(src.source) : runInfo[:center_shadow_source] = :NaN
   # uncomment line below only when update_scales!(runInfo, src, state) is commented out -
   runInfo.sourceValues = SelectionSourceParms(system(state), postModel_shadow) # refrshes selection source according to defaults of :orig = 1 and :best = 0.5 from model
   # comment out line above if update_scales is uncommented
@@ -207,16 +207,30 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   runInfo[:center_shadow_] = (state_center_shadow_[:chr, 1], state_center_shadow_[:fit, 1])
   runInfo[:euc_centerDiff] = norm(state_center_shadow_[:chr, 1] - state_center_shadow[:chr, 1])
   try
- 	runInfo[:mahalanobis_centerDiff] = sqrt((state_center_shadow_[:chr, 1] - state_center_shadow[:chr, 1])' * invC(postModel_shadow) * (state_center_shadow_[:chr, 1] - state_center_shadow[:chr, 1]))
+	if evolvable_(state)
+		runInfo[:euc_centerDiff] = norm(state_center_shadow_[:chr, 1] - state_center_shadow[:chr, 1])
+ 		runInfo[:mahalanobis_centerDiff] = sqrt((state_center_shadow_[:chr, 1] - state_center_shadow[:chr, 1])' * invC(postModel_shadow) * (state_center_shadow_[:chr, 1] - state_center_shadow[:chr, 1]))
+	else
+		runInfo[:mahalanobis_centerDiff] = NaN
+		runInfo[:euc_centerDiff] = NaN
+	end
   catch
 	runInfo[:mahalanobis_centerDiff] = NaN
+	runInfo[:euc_centerDiff] = NaN
   end
+
   runInfo[:firstRequest] = firstRequest(state)
+
   runInfo[:good_count] = good_count(state)
   runInfo[:bad_count] = bad_count(state)
-  runInfo[:center_if] = center_if(state)
-  runInfo[:center_if_fit] = center_if_fit(state)
 
+  if evolvable(state) || evolvable_(state)
+	  	runInfo[:center_if] = center_if(state)
+	  	runInfo[:center_if_fit] = center_if_fit(state)
+	else
+	  	runInfo[:center_if] = fill(NaN,chrlength_(state))
+	  	runInfo[:center_if_fit] = NaN
+	end
   #   Mirroring state
   #   note: currently does not include mirror of covar, signma or paths,
   #		    i.e. only center is mirrored from the model
@@ -225,9 +239,10 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   # offspring only mirror
   (offspring_selected, offs_sortOrder) = truncation(offspring, mu(state))
   offspring_center = center(offspring_selected, w)
-  runInfo[:center_fit] = state_center[:fit,1]
-  runInfo[:center_fit_shadow] = state_center_shadow[:fit,1]
-  runInfo[:center_fit_shadow_] = state_center_shadow_[:fit,1]
+
+  evolvable(state) ? runInfo[:center_fit] = state_center[:fit,1] : runInfo[:center_fit] = NaN
+  evolvable_(state) ? runInfo[:center_fit_shadow] = state_center_shadow[:fit,1] : runInfo[:center_fit_shadow] = NaN
+  evolvable_(state) ? runInfo[:center_fit_shadow_] = state_center_shadow_[:fit,1] : runInfo[:center_fit_shadow_] = NaN
   #println("center_ = $(state_center_shadow_[:fit,1])")
   #println("center = $(runInfo[:center_fit_shadow]), center_ = $(runInfo[:center_fit_shadow_])")
   runInfo[:offspring_center] = (offspring_center, objfn(f)(offspring_center))
