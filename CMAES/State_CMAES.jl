@@ -191,6 +191,7 @@ mu_(c::CMAES_State) = c.nModel_shadow.parms.μ
 #lambda_(c::CMAES_State) = c.nModel_shadow.parms.λ
 sigma_(c::CMAES_State) = c.nModel_shadow.σ
 center_(c::CMAES_State) = c.nModel_shadow.center
+center_2(c::CMAES_State) = c.nModel_shadow.center_
 covar_(c::CMAES_State) = c.nModel_shadow.C
 initializing_(c::CMAES_State) = (c.gen_shadow == 0)
 pW_(c::CMAES_State) = c.pW_shadow
