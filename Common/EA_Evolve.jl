@@ -50,7 +50,7 @@ function evolve!(state::State, f::Fitness, restart::RestartState, runInfo::Monit
         evolvepopn!_(state, f)
     end
 
-    update!(restart, state, system(state))
+    update!(restart, state, system(state),f)
     gtmaxevals!(state, restart)
 
     if (!ignorestagnation(restart) && ((evolvable(state, restart) || status(state) == :stop) || (evolvable_(state, restart) || status_(state) == :stop)))
