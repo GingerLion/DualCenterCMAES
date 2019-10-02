@@ -100,6 +100,6 @@ function next!(restart::RestartState, state::CMAES_State)
   restart.bfHist_ = BestFitHistory(histWindow, direction(state))
   restart.bcHist_ = BestChrHistory(10, direction(state))
   restart.bcHist_fitnesses_ = BestFitHistory(10, direction(state))
-  restart.sortOrder = Vector{Int}(undef,10)
+  restart.sortOrder = Vector{Int}(undef,10) # used when using sortedelitewindow
   restart.shouldRestart = false
 end
