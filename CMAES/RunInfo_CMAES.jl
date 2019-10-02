@@ -147,8 +147,10 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   parents_shadow = population_(state, :parents)
   offspring_shadow = population_(state, :pre)
   selected_shadow = population_(state, :post)
-  state_center_shadow = centerpopn(preModel_shadow, f)
-  state_center_shadow_ = centerpopn_(preModel_shadow, f)
+  #state_center_shadow = centerpopn(preModel_shadow, f)
+  #state_center_shadow_ = centerpopn_(preModel_shadow, f)
+  state_center_shadow = centerpopn(postModel_shadow, f)
+  state_center_shadow_ = centerpopn_(postModel_shadow, f)
   covMatrix_shadow = covar(postModel_shadow)
 
   # general information
@@ -194,7 +196,8 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   runInfo.sourceValues = SelectionSourceParms(system(state), postModel_shadow) # refrshes selection source according to defaults of :orig = 1 and :best = 0.5 from model
   # comment out line above if update_scales is uncommented
   #update_scales!(runInfo, src, state)
-
+  runInfo[:orig_scale] = orig_scale(currentmodel_(state))
+  runInfo[:best_scale] = best_scale(currentmodel_(state))
   #stepsize!_(src, postModel_shadow)
   #online update of model parms
   #update!(src, postModel, system(state))
