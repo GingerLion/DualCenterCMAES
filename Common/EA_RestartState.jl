@@ -107,16 +107,16 @@ function stagnationupdate!(restart::RestartState, state::State)
   end
 end
 
-function update!(restart::RestartState, state::State, sys::System)
+function update!(restart::RestartState, state::State, sys::System, f::Fitness)
   if !stopEvals(state) restart.totalEvals += evalsPerGen(sys) end
   if !stopEvals_(state) restart.totalEvals_ += evalsPerGen_(sys) end
 
   if evolvable(state) restart.bfHist[] = bestfitness(best(state)) end
   if evolvable_(state)
       restart.bfHist_[] = bestfitness(best_(state))
-      #updateSlidingWindow(state, restart)
-      #updateEliteWindowUnSorted(state, restart)
-      updateEliteWindowSorted(state, restart)
+      #updateSlidingWindow(state, restart, f)
+      updateEliteWindowUnSorted(state, restart, f)
+      #updateEliteWindowSorted(state, restart, f)
   end
 
 end
@@ -160,7 +160,7 @@ function canEnterWindow(newFit::Float64, historyWindow::Vector{Float64}, directi
     return canEnter
 end
 # constantly moving sliding window, solutions will only last windowSize generations
-function updateSlidingWindow(state::State, restart::RestartState)
+function updateSlidingWindow(state::State, restart::RestartState, f::Fitness)
     restart.bcHist_[] = bestchromosome(best_(state))
     len = length(history(restart.bcHist_))
     if len >  length(restart.bcHist_)
@@ -175,11 +175,11 @@ function updateSlidingWindow(state::State, restart::RestartState)
     end
     #println("real chr window before update=> $(history(restart.bcHist_))")
     # update center_
-    updateCenter!_(state, restart, history(restart.bcHist_))
+    updateCenter!_(state, restart, history(restart.bcHist_), f)
 end
 
 #keeps the best solutions at all times but doenst sort them
-function updateEliteWindowUnSorted(state::State, restart::RestartState)
+function updateEliteWindowUnSorted(state::State, restart::RestartState, f::Fitness)
     if !isWindowFull(restart)
         restart.bcHist_[] = bestchromosome(best_(state)) #note that this is a list with its own setindex! function
         #println("Chromosome Window => $(history(restart.bcHist_))\n")
@@ -207,10 +207,10 @@ function updateEliteWindowUnSorted(state::State, restart::RestartState)
         #println("Couldn't enter window.")
     end
     #update center_
-    updateCenter!_(state, restart, history(restart.bcHist_))
+    updateCenter!_(state, restart, history(restart.bcHist_), f)
 end
 #keeps the best solutions and also keeps the sorted
-function updateEliteWindowSorted(state::State, restart::RestartState)
+function updateEliteWindowSorted(state::State, restart::RestartState, f::Fitness)
     if !isWindowFull(restart)
         #println("Window not full.")
         restart.bcHist_[] = bestchromosome(best_(state))
@@ -260,10 +260,10 @@ function updateEliteWindowSorted(state::State, restart::RestartState)
     #println("Chromosomes in order of fitness and ready to be flattened => $(tmp)")
     #println("--------------------------------------------------")
     #update center_
-    updateCenter!_(state, restart, tmp)
+    updateCenter!_(state, restart, tmp, f)
 end
 
-function updateCenter!_(state::State, restart::RestartState, window::Array)
+function updateCenter!_(state::State, restart::RestartState, window::Array, f::Fitness)
     len = length(history(restart.bcHist_))
     if len > 1
         w = Weights(LinearAlgebra.normalize(map((i)->(log(15 + (4 * log(chrlength(state)))) - log(i)), 1:len), 1))
@@ -273,6 +273,29 @@ function updateCenter!_(state::State, restart::RestartState, window::Array)
             center!_(state, bestchromosome(best_(state)))
         catch
             center!_(state, center_(state))
+        end
+    end
+    #changes_scales!(state, f)
+end
+
+function change_scales!(state::State, f::Fitness)
+    if minimizing(population_shadow(state))
+        # if the window center (best center) is more fit than the main center then generate solutions from that center,
+        # otherwise generate no solutions from the best center
+        if fitness(centerpopn_(currentmodel_(state),f)) < fitness(centerpopn(currentmodel_(state),f))
+            orig_scale!(currentmodel_(state),1.5)
+            best_scale!(currentmodel_(state),0.5)
+        else
+            orig_scale!(currentmodel_(state),2.0)
+            best_scale!(currentmodel_(state),0.0)
+        end
+    else
+        if fitness(centerpopn_(currentmodel_(state),f)) > fitness(centerpopn(currentmodel_(state),f))
+            orig_scale!(currentmodel_(state),1.5)
+            best_scale!(currentmodel_(state),0.5)
+        else
+            orig_scale!(currentmodel_(state),2.0)
+            best_scale!(currentmodel_(state),0.0)
         end
     end
 end
