@@ -202,8 +202,6 @@ function evolvepopn!_(state::CMAES_State, f::RealFitness)
   sW = manage_best_solutions(model, orig_λ, best_λ, sOffspring, sW)
   flatten!(sW, weights(model))
 
-  nModel_ = update(model, sW, gen, :dualcenter)
-
   # WHAT IF
   if typeof(nOffspring_if) <: Population
       (sOffspring_if, sW_if) = es_selection(state, model, f, dualcenterpopn_if, dualcenternoise_if, shadow = true)
@@ -215,6 +213,8 @@ function evolvepopn!_(state::CMAES_State, f::RealFitness)
   else
       state.center_if = (fill(NaN,chrlength_(state)), NaN)
   end
+
+  nModel_ = update(model, sW, gen, :dualcenter)
 
   update!_(state, nModel_, dualcenterpopn, sOffspring, dualcenternoise, sW)
 
@@ -254,7 +254,7 @@ function generatesamples_(model::CMAES_Model, nE)
     (nW_orig, nW_best) = ShapedNoise(nE, model, dualcenter = true)
     !(typeof(nW_orig) <: Noise) ? nOffspring = NaN : nOffspring = model + nW_orig
     !(typeof(nW_best) <: Noise) ? nOffspring_best = NaN : nOffspring_best = RegularPopulation(nW_best, sigma(model) * members(nW_best) .+ center_(model))
-    !(typeof(nW_best) <: Noise) ? (nOffspring_if = NaN; println("nOffspring_if not a population");) : (nOffspring_if = model + nW_best)
+    !(typeof(nW_best) <: Noise) ? nOffspring_if = NaN : nOffspring_if = model + nW_best
 
     if !(typeof(nW_orig) <: Noise) && (typeof(nW_best) <: Noise)
         (NaN, nOffspring_best, nE, NaN, nW_best, nOffspring_if)
