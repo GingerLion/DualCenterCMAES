@@ -38,8 +38,13 @@ function SelectionSourceParms(elitism::Bool, includeCenter::Bool, μ::Int, λ::I
 end
 
 function SelectionSourceParms(orig_scale::Float64, best_scale::Float64, elitism::Bool, includeCenter::Bool, μ::Int, λ::Int, η::Int)
-  first_half = floor(Int64, orig_scale * λ/2)
-  second_half = λ - first_half
+    if orig_scale == 2.0
+        first_half = λ
+        second_half = 0
+    else
+        first_half = floor(Int64, orig_scale * floor(Int64,λ/2))
+        second_half = λ - first_half
+    end
   if elitism && includeCenter
     AllSourceParms(μ, first_half, second_half, η)
   elseif elitism
