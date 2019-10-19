@@ -17,7 +17,6 @@ cmaes_files = ["Types_CMAES.jl",
                "Restart_CMAES.jl",
                "RestartCriteria_CMAES.jl",
                "RunInfo_CMAES.jl",
-               "WriteRun_CMAES.jl",
-               "Analysis.jl"]
+               "WriteRun_CMAES.jl"]
 
 load_files(cmaes_files; path = cmaes_path)
