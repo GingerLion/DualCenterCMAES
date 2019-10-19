@@ -16,8 +16,8 @@ end
 function println(state::CMAES_State, restart::RestartState)
   stagnation = restart.stagnation
   stagnation_ = restart.stagnation_
-  println("\nRestart: rep = $(rep(restart)) at gen = $(currentgen(state))")
-  println("$(firstRequest(state)) system requested to restart first.")
+  println("\nRestart: rep = ",rep(restart)," at gen = ",currentgen(state))
+  println(firstRequest(state)," system requested to restart first.")
   if !isempty(restart.stagReason)
     conditionPrinted = false
     print("<")
@@ -36,8 +36,8 @@ function println(state::CMAES_State, restart::RestartState)
           conditionPrinted ? print(",") : print("")
           print(i)
           conditionPrinted = true
-      end
       print("> : dualcenter system\n")
+  end
   end
   #=conditionPrinted = false
   msg = ["hist", "tolx", "zeroAxis", "negEigVal", "complexEigVal", "zeroEigVal", "zeroCoord", "cond"]
