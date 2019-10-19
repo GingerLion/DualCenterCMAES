@@ -275,7 +275,7 @@ function updateCenter!_(state::State, restart::RestartState, window::Array, f::F
             center!_(state, center_(state))
         end
     end
-    #changes_scales!(state, f)
+    change_scales!(state, f)
 end
 
 function change_scales!(state::State, f::Fitness)
@@ -283,19 +283,19 @@ function change_scales!(state::State, f::Fitness)
         # if the window center (best center) is more fit than the main center then generate solutions from that center,
         # otherwise generate no solutions from the best center
         if fitness(centerpopn_(currentmodel_(state),f)) < fitness(centerpopn(currentmodel_(state),f))
+            orig_scale!(currentmodel_(state),0.0)
+            best_scale!(currentmodel_(state),2.0)
+        else
             orig_scale!(currentmodel_(state),1.5)
             best_scale!(currentmodel_(state),0.5)
-        else
-            orig_scale!(currentmodel_(state),2.0)
-            best_scale!(currentmodel_(state),0.0)
         end
     else
         if fitness(centerpopn_(currentmodel_(state),f)) > fitness(centerpopn(currentmodel_(state),f))
+            orig_scale!(currentmodel_(state),0.0)
+            best_scale!(currentmodel_(state),2.0)
+        else
             orig_scale!(currentmodel_(state),1.5)
             best_scale!(currentmodel_(state),0.5)
-        else
-            orig_scale!(currentmodel_(state),2.0)
-            best_scale!(currentmodel_(state),0.0)
         end
     end
 end

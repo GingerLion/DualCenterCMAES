@@ -260,7 +260,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
   #runInfo[:all_source]       = SelectionSource(allsourcevalues(runInfo), all_sortOrder)
 
   #eigenvalue & eigenvector study
-  if !eigenerror(state) && !eigenerror_(state)
+  #=if !eigenerror(state) && !eigenerror_(state)
 	  #NON-shadowGED
 	  eigvals = eigendecomp(postModel)[1]
 	  eigvecs = eigendecomp(postModel)[2]
@@ -295,27 +295,27 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
 	  runInfo[:eig_min_shadow] = NaN
 	  runInfo[:eig_max_shadow] = NaN
 
-  end
+  end=#
 
 	#model parms
-	runInfo[:μ_eff] = μ_eff(postModel)
+	#=runInfo[:μ_eff] = μ_eff(postModel)
 	runInfo[:d_σ] = d_σ(postModel)
 	runInfo[:chi_mean] = chi_mean(postModel)
 	runInfo[:h_σ] = h_σ(postModel)
 	runInfo[:c_1] = c_1(postModel)
 	runInfo[:c_σ] = c_σ(postModel)
 	runInfo[:c_μ] = c_μ(postModel)
-	runInfo[:c_c] = c_c(postModel)
+	runInfo[:c_c] = c_c(postModel)=#
 	#shadowged model parms
 	#not going to bother
 
 	#paths
-	runInfo[:p_σ] = p_σ(postModel)
+	#=runInfo[:p_σ] = p_σ(postModel)
 	runInfo[:p_c] = p_c(postModel)
 	runInfo[:y] = weightedavg(state.sW)
-	runInfo[:invsqrtC] = invsqrtC(postModel)
+	runInfo[:invsqrtC] = invsqrtC(postModel)=#
 	#update equations in parts
-	runInfo[:p_σ_part1] = p_σ_part1(postModel)
+	#=runInfo[:p_σ_part1] = p_σ_part1(postModel)
 	runInfo[:p_σ_part2] = p_σ_part2(postModel)
 	runInfo[:p_σ_part3] = p_σ_part3(postModel,state.sW)
 
@@ -377,7 +377,7 @@ function monitor!(runInfo::RunInfo, state::CMAES_State, f::RealFitness)
 
 	runInfo[:C_part1_shadow] = C_part1(postModel_shadow)
 	runInfo[:C_part2_shadow] = C_part2(postModel_shadow)
-	runInfo[:C_part3_shadow] = C_part3(postModel_shadow,state.sW_shadow)
+	runInfo[:C_part3_shadow] = C_part3(postModel_shadow,state.sW_shadow)=#
 end
 
 function monitor!(runInfo::RunInfo, state::CMAES_State, restart::RestartState, f::RealFitness)
