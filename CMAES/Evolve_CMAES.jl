@@ -199,13 +199,14 @@ function evolvepopn!_(state::CMAES_State, f::RealFitness)
   end
 
   (sOffspring, sW) = es_selection(state, model, f, dualcenterpopn, dualcenternoise, shadow = true)
-  sW = manage_best_solutions(model, orig_λ, best_λ, sOffspring, sW)
+  reset_ranksum(state)
+  sW = manage_best_solutions(state, model, orig_λ, best_λ, sOffspring, sW)
   flatten!(sW, weights(model))
 
   # WHAT IF
   if typeof(nOffspring_if) <: Population
       (sOffspring_if, sW_if) = es_selection(state, model, f, dualcenterpopn_if, dualcenternoise_if, shadow = true)
-      sW_if = manage_best_solutions(model, orig_λ, best_λ, sOffspring_if, sW_if)
+      sW_if = manage_best_solutions(state, model, orig_λ, best_λ, sOffspring_if, sW_if, whatif = true)
       flatten!(sW_if, weights(model))
       center_if = update(model, sW_if, gen, :whatif)
       center_if_mem = Member(center_if, f.objFn(center_if))
@@ -298,7 +299,7 @@ function es_selection(state, model, f, nOffspring, nW; shadow = false)
   end
 end
 
-function manage_best_solutions(model::CMAES_Model, orig_λ::Integer, best_λ::Integer, sOffspring::SortedPopulation, sW::Noise)
+function manage_best_solutions(state::CMAES_State, model::CMAES_Model, orig_λ::Integer, best_λ::Integer, sOffspring::SortedPopulation, sW::Noise; whatif = false)
     orig = fill(:orig, orig_λ)
     best = fill(:best, best_λ)
     all = vcat(orig, best)
@@ -311,6 +312,9 @@ function manage_best_solutions(model::CMAES_Model, orig_λ::Integer, best_λ::In
     for i=1:length(source)
         if source[i] == :best
             mems[:,i] = (sOffspring[:chr, i] - center(model)) / sigma(model)
+            !whatif ? state.ranksum_best += i : nothing
+        elseif source[i] == :orig
+            !whatif ? state.ranksum_orig += i : nothing
         end
     end
 

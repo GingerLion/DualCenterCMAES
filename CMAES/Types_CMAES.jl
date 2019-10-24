@@ -222,6 +222,8 @@ mutable struct CMAES_State <: State
    good_count::Integer
    bad_count::Integer
    center_if::Tuple
+   ranksum_orig::Integer
+   ranksum_best::Integer
 
   function CMAES_State(model::CMAES_Model, sys::CMAES_System, f::RealFitness, runInfo = NoMonitor(), verbose = false; new = true, cur_state = :no)
     if new

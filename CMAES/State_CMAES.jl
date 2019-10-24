@@ -68,6 +68,8 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 		state.stopEvals_ = false
 		state.good_count = 0
 		state.bad_count = 0
+		state.ranksum_orig = 0
+		state.ranksum_best = 0
 		evolvable!(state)
 		evolvable!_(state)
 	else
@@ -209,6 +211,10 @@ inc_good!(state::CMAES_State) = state.good_count = state.good_count += 1
 inc_bad!(state::CMAES_State) = state.bad_count = state.bad_count += 1
 center_if(state::CMAES_State) = state.center_if[1]
 center_if_fit(state::CMAES_State) = state.center_if[2]
+
+ranksum_orig(state::CMAES_State) = state.ranksum_orig
+ranksum_best(state::CMAES_State) = state.ranksum_best
+reset_ranksum(state::CMAES_State) = state.ranksum_orig = state.ranksum_best = 0
 
 # note: currently during evolution parents are in :post while :parents holds parents of the parents
 #       after evolution parents are in :parents and :post holds the post selection population
