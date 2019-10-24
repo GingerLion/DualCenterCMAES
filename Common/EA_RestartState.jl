@@ -282,20 +282,34 @@ function change_scales!(state::State, f::Fitness)
     if minimizing(population_shadow(state))
         # if the window center (best center) is more fit than the main center then generate solutions from that center,
         # otherwise generate no solutions from the best center
-        if fitness(centerpopn_(currentmodel_(state),f)) < fitness(centerpopn(currentmodel_(state),f))
-            orig_scale!(currentmodel_(state),0.0)
-            best_scale!(currentmodel_(state),2.0)
+        #=if fitness(centerpopn_(currentmodel_(state),f)) < fitness(centerpopn(currentmodel_(state),f))
+            orig_scale!(currentmodel_(state),1.0)
+            best_scale!(currentmodel_(state),1.0)
         else
             orig_scale!(currentmodel_(state),1.5)
             best_scale!(currentmodel_(state),0.5)
+        end=#
+        if ranksum_best(state) < ranksum_orig(state)
+            orig_scale!(currentmodel_(state), 0.0)
+            best_scale!(currentmodel_(state), 2.0)
+        else # >=
+            orig_scale!(currentmodel_(state), 1.0)
+            best_scale!(currentmodel_(state), 1.0)
         end
     else
-        if fitness(centerpopn_(currentmodel_(state),f)) > fitness(centerpopn(currentmodel_(state),f))
-            orig_scale!(currentmodel_(state),0.0)
-            best_scale!(currentmodel_(state),2.0)
+        #=if fitness(centerpopn_(currentmodel_(state),f)) > fitness(centerpopn(currentmodel_(state),f))
+            orig_scale!(currentmodel_(state),1.0)
+            best_scale!(currentmodel_(state),1.0)
         else
             orig_scale!(currentmodel_(state),1.5)
             best_scale!(currentmodel_(state),0.5)
+        end=#
+        if ranksum_best(state) > ranksum_orig(state)
+            orig_scale!(currentmodel_(state), 0.0)
+            best_scale!(currentmodel_(state), 2.0)
+        else # >=
+            orig_scale!(currentmodel_(state), 1.0)
+            best_scale!(currentmodel_(state), 1.0)
         end
     end
 end
