@@ -90,19 +90,19 @@ function stagnationupdate!(restart::RestartState, state::State)
         restart.shouldRestart = true
         #println("case 6 shouldRestart")
     elseif any(restart.stagnation) && !any(restart.stagnation_)
-      stagReason!(restart, msg)
-      state.status = :stop
-      if status_(state) == :stop restart.shouldRestart = true end
-      state.firstRequest = :normal
-      state.stopEvals = true
-      #println("case 7")
+        stagReason!(restart, msg)
+        state.status = :stop
+        if status_(state) == :stop restart.shouldRestart = true end
+        state.firstRequest = :normal
+        state.stopEvals = true
+        #println("case 7")
     elseif any(restart.stagnation_) && !any(restart.stagnation)
-      stagReason!_(restart, msg)
-      state.status_shadow = :stop
-      if status(state) == :stop restart.shouldRestart = true end
-      state.firstRequest = :dualcenter
-      state.stopEvals_ = true
-      #println("case 8")
+        stagReason!_(restart, msg)
+        state.status_shadow = :stop
+        if status(state) == :stop restart.shouldRestart = true end
+        state.firstRequest = :dualcenter
+        state.stopEvals_ = true
+         #println("case 8")
     end
   end
 end
@@ -118,7 +118,7 @@ function update!(restart::RestartState, state::State, sys::System, f::Fitness)
       updateEliteWindowUnSorted(state, restart, f)
       #updateEliteWindowSorted(state, restart, f)
   end
-
+  #println("normal evals = ",evals(restart),", dc evals = ",evals_(restart))
 end
 
 ##--------------------------------------
@@ -275,41 +275,49 @@ function updateCenter!_(state::State, restart::RestartState, window::Array, f::F
             center!_(state, center_(state))
         end
     end
-    change_scales!(state, f)
+    change_scales!(state, restart, f)
 end
 
-function change_scales!(state::State, f::Fitness)
+function change_scales!(state::State, restart::RestartState, f::Fitness)
     if minimizing(population_shadow(state))
         # if the window center (best center) is more fit than the main center then generate solutions from that center,
         # otherwise generate no solutions from the best center
-        #=if fitness(centerpopn_(currentmodel_(state),f)) < fitness(centerpopn(currentmodel_(state),f))
-            orig_scale!(currentmodel_(state),1.0)
-            best_scale!(currentmodel_(state),1.0)
+        if fitness(centerpopn_(currentmodel_(state),f)) < fitness(centerpopn(currentmodel_(state),f))
+            state.evalCount_shadow += 2
+            restart.totalEvals_ += 2
+            orig_scale!(currentmodel_(state),0.5)
+            best_scale!(currentmodel_(state),1.5)
         else
-            orig_scale!(currentmodel_(state),1.5)
-            best_scale!(currentmodel_(state),0.5)
-        end=#
-        if ranksum_best(state) < ranksum_orig(state)
-            orig_scale!(currentmodel_(state), 0.0)
-            best_scale!(currentmodel_(state), 2.0)
-        else # >=
-            orig_scale!(currentmodel_(state), 1.0)
-            best_scale!(currentmodel_(state), 1.0)
+            state.evalCount_shadow += 2
+            restart.totalEvals_ += 2
+            orig_scale!(currentmodel_(state),2.0)
+            best_scale!(currentmodel_(state),0.0)
         end
+        #=if ranksum_best(state) < ranksum_orig(state)
+            orig_scale!(currentmodel_(state), 0.5)
+            best_scale!(currentmodel_(state), 1.5)
+        else # >=
+            orig_scale!(currentmodel_(state), 1.5)
+            best_scale!(currentmodel_(state), 0.5)
+        end=#
     else
-        #=if fitness(centerpopn_(currentmodel_(state),f)) > fitness(centerpopn(currentmodel_(state),f))
-            orig_scale!(currentmodel_(state),1.0)
-            best_scale!(currentmodel_(state),1.0)
+        if fitness(centerpopn_(currentmodel_(state),f)) > fitness(centerpopn(currentmodel_(state),f))
+            state.evalCount_shadow += 2
+            restart.totalEvals_ += 2 # most important
+            orig_scale!(currentmodel_(state),0.5)
+            best_scale!(currentmodel_(state),1.5)
         else
-            orig_scale!(currentmodel_(state),1.5)
-            best_scale!(currentmodel_(state),0.5)
-        end=#
-        if ranksum_best(state) > ranksum_orig(state)
-            orig_scale!(currentmodel_(state), 0.0)
-            best_scale!(currentmodel_(state), 2.0)
-        else # >=
-            orig_scale!(currentmodel_(state), 1.0)
-            best_scale!(currentmodel_(state), 1.0)
+            state.evalCount_shadow += 2
+            restart.totalEvals_ += 2 # most important
+            orig_scale!(currentmodel_(state),2.0)
+            best_scale!(currentmodel_(state),0.0)
         end
+        #=if ranksum_best(state) > ranksum_orig(state)
+            orig_scale!(currentmodel_(state), 0.5)
+            best_scale!(currentmodel_(state), 1.5)
+        else # >=
+            orig_scale!(currentmodel_(state), 1.5)
+            best_scale!(currentmodel_(state), 0.5)
+        end=#
     end
 end

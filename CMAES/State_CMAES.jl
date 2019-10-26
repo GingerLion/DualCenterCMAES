@@ -92,7 +92,7 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 			state.pW_shadow = ZeroNoise(ShapedNoise, n, μ)
 			state.sOffspring_shadow = SortedPopulation(RegularPopulation(center_(state), μ, f.objFn; direction = direction))
 			state.pOffspring_shadow = deepcopy(state.sOffspring_shadow)
-			println("state.status = $(status(state)) & state.status_shadow = $(status_(state))")
+			println("state.status = ",status(state)," & state.status_shadow = ",status_(state))
 		elseif hastocatchup(state) == :normal
 			evolvable!(state)
 			state.stopEvals = false
@@ -108,7 +108,7 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 			state.pW = ZeroNoise(ShapedNoise, n, μ)
 			state.sOffspring = SortedPopulation(RegularPopulation(center(state), μ, f.objFn; direction = direction))
 			state.pOffspring = deepcopy(state.sOffspring)
-			println("state.status = $(status(state)) & state.status_shadow = $(status_(state))")
+			println("state.status = ",status(state)," & state.status_shadow = ",status_(state))
 		end
 		if maxContinueSystem(state) == :dualcenter
 			evolvable!_(state)
@@ -124,7 +124,7 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 			state.pW_shadow = ZeroNoise(ShapedNoise, n, μ)
 			state.sOffspring_shadow = SortedPopulation(RegularPopulation(center_(state), μ, f.objFn; direction = direction))
 			state.pOffspring_shadow = deepcopy(state.sOffspring_shadow)
-			println("state.status = $(status(state)) & state.status_shadow = $(status_(state))")
+			println("state.status = ",status(state)," & state.status_shadow = ",status_(state))
 		elseif maxContinueSystem(state) == :normal
 			evolvable!(state)
 			state.stopEvals = false
@@ -140,7 +140,7 @@ function setup!(state::CMAES_State, model::CMAES_Model, sys::CMAES_System, f::Re
 			state.pW = ZeroNoise(ShapedNoise, n, μ)
 			state.sOffspring = SortedPopulation(RegularPopulation(center(state), μ, f.objFn; direction = direction))
 			state.pOffspring = deepcopy(state.sOffspring)
-			println("state.status = $(status(state)) & state.status_shadow = $(status_(state))")
+			println("state.status = ",status(state)," & state.status_shadow = ",status_(state))
 		end
 	end
 end

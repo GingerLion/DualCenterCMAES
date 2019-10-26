@@ -40,7 +40,7 @@ completed_(state::State, sys::System, f::Fitness) = found_(state, f) || gtmaxgen
 gtmaxgen(state::State) = (state.gen > system(state).maxGen)
 gtmaxgen!(state::State) = if gtmaxgen(state, system(state)) state.status = :max_gen end
 
-gtmaxevals(evals::Int, sys::System) = (evals > sys.maxEvals)
+gtmaxevals(evals::Int, sys::System) = (evals >= sys.maxEvals)
 gtmaxevals(state::State) = (evals(state) > system(state).maxEvals)
 gtmaxevals_(state::State) = (evals_(state) > system(state).maxEvals)
 gtmaxevals!(state::State) = if gtmaxevals(state) state.status = :max_evals; state.stopEvals = true end

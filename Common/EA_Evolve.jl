@@ -51,7 +51,7 @@ function evolve!(state::State, f::Fitness, restart::RestartState, runInfo::Monit
     end
 
     update!(restart, state, system(state),f)
-    gtmaxevals!(state, restart)
+    gtmaxevals!(state, restart) # important that this gtmaxevals! is used to check that the RestartState totalevals_ are being used to check against max_evals
 
     if (!ignorestagnation(restart) && ((evolvable(state, restart) || status(state) == :stop) || (evolvable_(state, restart) || status_(state) == :stop)))
       stagnationupdate!(restart, state)

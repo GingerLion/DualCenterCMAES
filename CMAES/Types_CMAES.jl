@@ -225,6 +225,23 @@ mutable struct CMAES_State <: State
    ranksum_orig::Integer
    ranksum_best::Integer
 
+   function CMAES_State(model::CMAES_Model, sys::CMAES_System, f::RealFitness, restart::RestartState,
+                        runInfo = NoMonitor(), verbose = false; new = true, cur_state = :no)
+     if new
+         state = new()
+         if typeof(cur_state) <: State
+             state.best_overall = best_overall(cur_state)
+             state.best_overall_ = best_overall_(cur_state)
+         end
+         setup!(state, model, sys, f)
+         evolve!(state, f, restart, runInfo, verbose)
+         state
+     elseif typeof(cur_state) <: State
+         setup!(cur_state, model, sys, f, new = false)
+         evolve!(cur_state, f, restart, runInfo, verbose)
+         cur_state
+     end
+   end
   function CMAES_State(model::CMAES_Model, sys::CMAES_System, f::RealFitness, runInfo = NoMonitor(), verbose = false; new = true, cur_state = :no)
     if new
         state = new()
@@ -240,25 +257,7 @@ mutable struct CMAES_State <: State
         evolve!(cur_state, f, runInfo, verbose)
         cur_state
     end
-  end
-
-  function CMAES_State(model::CMAES_Model, sys::CMAES_System, f::RealFitness, restart::RestartState,
-                       runInfo = NoMonitor(), verbose = false; new = true, cur_state = :no)
-    if new
-        state = new()
-        if typeof(cur_state) <: State
-            state.best_overall = best_overall(cur_state)
-            state.best_overall_ = best_overall_(cur_state)
-        end
-        setup!(state, model, sys, f)
-        evolve!(state, f, restart, runInfo, verbose)
-        state
-    elseif typeof(cur_state) <: State
-        setup!(cur_state, model, sys, f, new = false)
-        evolve!(cur_state, f, restart, runInfo, verbose)
-        cur_state
-    end
-  end
+end
 end
 
 

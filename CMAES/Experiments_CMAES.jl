@@ -13,7 +13,7 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 	#prefixNames = ["fn", "dim", "elitism", "ctr", "run"]
 	prefixNames = ["fn", "dim","run"]
 	firstTime = true
-	for n = [5,10,25,50,75,100]
+	for n = [25,50]
 		testFn = generatetests(n, 0.0; ε = 0.0)
 		fn_name  = [:ackley,:elliptical,:griewank,:levy,:rastrigin,:rosenbrock,:zakharov]
 		#fn_name = [:zakharov]
@@ -33,7 +33,7 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 
 					if summary
 						write_final(ipop; prefixNames = prefixNames, prefixValues = prefixValues,
-						            	  initialize = firstTime, path = outputPath, fileName = "allfns_euw_dual0211_final$exprName")
+						            	  initialize = firstTime, path = outputPath, fileName = "test_final$exprName")
 					end
 
 					#=if monitored
@@ -49,4 +49,4 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 end
 
 expr_path = "$(base_path)/Experiments/fixedbudgetruns/conditional/ranksum"
-runexpr("#dual-center", reps = 50, outputPath = expr_path, monitored = true)
+runexpr("#dual-center", reps = 10, outputPath = expr_path, monitored = true)
