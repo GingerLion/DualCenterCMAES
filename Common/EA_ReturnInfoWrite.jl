@@ -43,9 +43,9 @@ function write_final(rinfo::ReReturnInfo; prefixValues = [], prefixNames = [], i
   (bestChr_, bestFit_) = best_overall_(state)
 
   if maximizing(state)
-       (bestFit > bestFit_) ? foundSol = "normal" : foundSol = "dualcenter"
+       (abs(bestFit) > abs(bestFit_)) ? foundSol = "normal" : foundSol = "dualcenter"
   else
-        (bestFit < bestFit_) ? foundSol = "normal" : foundSol = "dualcenter"
+       (abs(bestFit) < abs(bestFit_)) ? foundSol = "normal" : foundSol = "dualcenter"
   end
 
   open(fileName, "a") do f
