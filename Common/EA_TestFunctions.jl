@@ -177,7 +177,7 @@ function generatetests(n, α˚; ε = 1.0e-10)
 	EA_Test[:dixon_price] = UnBoundedFitness{Float64}(lineartransform(dixon_price, n, α˚), n, :min, 0.0,  map((i)->(2^-((2^i - 2)/2^i)), 1:n), ε)
 	EA_Test[:zakharov] = UnBoundedFitness{Float64}(lineartransform(zakharov, n, α˚), n, :min, 0.0, allZeros, ε)
 	EA_Test[:rastrigin_] = UnBoundedFitness{Float64}(rastrigin_, n, :min, 0.0, allZeros, ε)
-	EA_Test[:schwefel] = UnBoundedFitness{Float64}(lineartransform(schwefel, n, α˚), n, :min, 0.0, allZeros, ε)
+	EA_Test[:schwefel] = UnBoundedFitness{Float64}(lineartransform(schwefel, n, α˚), n, :min, 0.0, fill(420.9687,n), ε)
 	EA_Test[:sphere] = UnBoundedFitness{Float64}(lineartransform(sphere, n, α˚), n, :min, 0.0, allZeros, ε)
 	EA_Test[:elliptical] = UnBoundedFitness{Float64}(lineartransform(elliptical, n, α˚), n, :min, 0.0, allZeros, ε)
 	EA_Test
