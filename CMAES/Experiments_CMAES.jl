@@ -13,16 +13,15 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 	#prefixNames = ["fn", "dim", "elitism", "ctr", "run"]
 	prefixNames = ["fn", "dim","run"]
 	firstTime = true
-	for n = [5,10,25,50,75,100]
+	for n = [25,50,75,100]
 		testFn = generatetests(n, 0.0; ε = 0.0)
-		fn_name  = [:ackley,:elliptical,:griewank,:levy,:rastrigin,:rosenbrock,:zakharov]
-		#fn_name = [:zakharov]
+		fn_name  = [:ackley,:griewank,:levy,:elliptical,:rastrigin,:rosenbrock,:zakharov]
 		for name in fn_name
 			f = testFn[name]
 			r_UnitShell = rand_shell(optimum(f))
 			for includeCenter = [false], elitism = [false]
 				sys = CMAES_System(n, f; maxEvals = 100n, includeCenter = includeCenter, elitism = elitism)
-				rsys = CMAES_Restart(; η = 2.0)
+				rsys = CMAES_Restart(; η = 1.0)
 				deg = 5.0
 				for expr = 1:reps
 					#prefixValues = [name, n, elitism, includeCenter, expr]
@@ -33,7 +32,7 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 
 					if summary
 						write_final(ipop; prefixNames = prefixNames, prefixValues = prefixValues,
-						            	  initialize = firstTime, path = outputPath, fileName = "allfns_euw_rs051511_final$exprName")
+						            	  initialize = firstTime, path = outputPath, fileName = "dualcenter_1505_final$exprName")
 					end
 
 					#=if monitored
@@ -48,5 +47,5 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 	end
 end
 
-expr_path = "$(base_path)/Experiments/fixedbudgetruns/conditional/ranksum"
-runexpr("#dual-center", reps = 50, outputPath = expr_path, monitored = true)
+expr_path = "$(base_path)/Experiments/fixedbudgetruns"
+runexpr("#dual-center", reps = 10, outputPath = expr_path, monitored = true)
