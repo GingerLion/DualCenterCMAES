@@ -13,9 +13,10 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 	#prefixNames = ["fn", "dim", "elitism", "ctr", "run"]
 	prefixNames = ["fn", "dim","run"]
 	firstTime = true
-	for n = [25,50,75,100]
+	for n = [100]
 		testFn = generatetests(n, 0.0; ε = 0.0)
-		fn_name  = [:ackley,:griewank,:levy,:elliptical,:rastrigin,:rosenbrock,:zakharov]
+		fn_name  = [:rastrigin]
+		#fn_name = [:zakharov]
 		for name in fn_name
 			f = testFn[name]
 			r_UnitShell = rand_shell(optimum(f))
@@ -32,6 +33,7 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 
 					if summary
 						write_final(ipop; prefixNames = prefixNames, prefixValues = prefixValues,
+						            	  initialize = firstTime, path = outputPath, fileName = "tryin_a_ting_final$exprName")
 						            	  initialize = firstTime, path = outputPath, fileName = "dualcenter_1505_final$exprName")
 					end
 
