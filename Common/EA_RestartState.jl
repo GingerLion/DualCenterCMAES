@@ -129,7 +129,7 @@ function equalfunvalhist(currentFit::Vector, restart::RestartState)
 	allFit = vcat(currentFit, historyFit)
 	zero_hist = (maximum(historyFit) - minimum(historyFit) == 0.0)
 	tol_all = (maximum(allFit) - minimum(allFit) < tol_f(restart))
-    if (zero_hist || tol_all) println("<HIST> triggered") end
+    #if (zero_hist || tol_all) println("<HIST> triggered") end
 	zero_hist || tol_all
 end
 
@@ -138,7 +138,7 @@ function equalfunvalhist_(currentFit::Vector, restart::RestartState)
 	allFit = vcat(currentFit, historyFit)
 	zero_hist = (maximum(historyFit) - minimum(historyFit) == 0.0)
 	tol_all = (maximum(allFit) - minimum(allFit) < tol_f(restart))
-    if (zero_hist || tol_all) println("<HIST> triggered") end
+    #if (zero_hist || tol_all) println("<HIST> triggered") end
 	zero_hist || tol_all
 end
 

@@ -34,6 +34,7 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 					if summary
 						write_final(ipop; prefixNames = prefixNames, prefixValues = prefixValues,
 						            	  initialize = firstTime, path = outputPath, fileName = "tryin_a_ting_final$exprName")
+						            	  initialize = firstTime, path = outputPath, fileName = "dualcenter_1505_final$exprName")
 					end
 
 					#=if monitored
@@ -49,4 +50,4 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 end
 
 expr_path = "$(base_path)/Experiments/fixedbudgetruns"
-runexpr("#dual-center", reps = 50, outputPath = expr_path, monitored = true)
+runexpr("#dual-center", reps = 10, outputPath = expr_path, monitored = true)
