@@ -65,13 +65,13 @@ end
 
 # Swechfel
 
-schwefel(x) =  (418.982887 * length(x)) - sum(x .* sin.(sqrt.(abs.(x))))
+schwefel(x) =  (418.9828873 * length(x)) - sum(x .* sin.(sqrt.(abs.(x))))
 schwefel() = typeof(rastrigin([0.0 ,0.0]))
 
 function schwefel(x)
   d = length(x)
   total = sum(x .* sin.(sqrt.(abs.(x))))
-  418.982887 * d - total
+  418.9828873 * d - total
 end
 # Sphere
 

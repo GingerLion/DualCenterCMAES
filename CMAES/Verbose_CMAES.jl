@@ -27,7 +27,6 @@ function println(state::CMAES_State, restart::RestartState)
         conditionPrinted = true
     end
     print("> : normal system\n")
-
   end
   if !isempty(restart.stagReason_)
       conditionPrinted = false
@@ -36,8 +35,8 @@ function println(state::CMAES_State, restart::RestartState)
           conditionPrinted ? print(",") : print("")
           print(i)
           conditionPrinted = true
+      end
       print("> : dualcenter system\n")
-  end
   end
   #=conditionPrinted = false
   msg = ["hist", "tolx", "zeroAxis", "negEigVal", "complexEigVal", "zeroEigVal", "zeroCoord", "cond"]
