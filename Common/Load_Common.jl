@@ -22,7 +22,7 @@ function load_files(files; path="")
 		includefile(file)
 	end
 end
-base_path = "C:/Users/dillo/OneDrive - University of Guelph/Research/EA_Julia_Wineberg/v0.4.06"
+base_path = "/Users/dillon/v0.4.06"
 common_path = "$(base_path)/Common"
 
 common_files = ["EA_Types.jl",

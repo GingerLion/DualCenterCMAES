@@ -1,4 +1,4 @@
-base_path = "C:/Users/dillo/OneDrive - University of Guelph/Research/EA_Julia_Wineberg/v0.4.06"
+base_path = "/Users/dillon/v0.4.06"
 cmaes_path = "$(base_path)/CMAES"
 
 if !@isdefined commonSourceLoaded
