@@ -277,6 +277,7 @@ function updateCenter!_(state::State, restart::RestartState, window::Array, f::F
             center!_(state, center_(state))
         end
     end
+    # uncomment the line below if you want to use conditional metrics OR rank-sum
     #change_scales!(state, restart, f)
 end
 
@@ -284,42 +285,42 @@ function change_scales!(state::State, restart::RestartState, f::Fitness)
     if minimizing(population_shadow(state))
         # if the window center (best center) is more fit than the main center then generate solutions from that center,
         # otherwise generate no solutions from the best center
-        if fitness(centerpopn_(currentmodel_(state),f)) < fitness(centerpopn(currentmodel_(state),f))
+        #=if fitness(centerpopn_(currentmodel_(state),f)) < fitness(centerpopn(currentmodel_(state),f))
             state.evalCount_shadow += 2
             restart.totalEvals_ += 2
-            orig_scale!(currentmodel_(state),0.0)
-            best_scale!(currentmodel_(state),2.0)
+            orig_scale!(currentmodel_(state),0.5)
+            best_scale!(currentmodel_(state),1.5)
         else
             state.evalCount_shadow += 2
             restart.totalEvals_ += 2
-            orig_scale!(currentmodel_(state),1.0)
-            best_scale!(currentmodel_(state),1.0)
-        end
-        #=if (!(ranksum_best(state) == 0) && (ranksum_best(state) < ranksum_orig(state)))
+            orig_scale!(currentmodel_(state),1.5)
+            best_scale!(currentmodel_(state),0.5)
+        end=#
+        if (!(ranksum_best(state) == 0) && (ranksum_best(state) < ranksum_orig(state)))
             orig_scale!(currentmodel_(state), 1.0)
             best_scale!(currentmodel_(state), 1.0)
         else # >=
             orig_scale!(currentmodel_(state), 1.5)
             best_scale!(currentmodel_(state), 0.5)
-        end=#
+        end
     else
-        if fitness(centerpopn_(currentmodel_(state),f)) > fitness(centerpopn(currentmodel_(state),f))
+        #=if fitness(centerpopn_(currentmodel_(state),f)) > fitness(centerpopn(currentmodel_(state),f))
             state.evalCount_shadow += 2
             restart.totalEvals_ += 2 # most important
-            orig_scale!(currentmodel_(state),0.0)
-            best_scale!(currentmodel_(state),2.0)
+            orig_scale!(currentmodel_(state),0.5)
+            best_scale!(currentmodel_(state),1.5)
         else
             state.evalCount_shadow += 2
             restart.totalEvals_ += 2 # most important
-            orig_scale!(currentmodel_(state),1.0)
-            best_scale!(currentmodel_(state),1.0)
-        end
-        #=if (!(ranksum_best(state)==0) && (ranksum_best(state) > ranksum_orig(state)))
+            orig_scale!(currentmodel_(state),1.5)
+            best_scale!(currentmodel_(state),0.5)
+        end=#
+        if (!(ranksum_best(state)==0) && (ranksum_best(state) > ranksum_orig(state)))
             orig_scale!(currentmodel_(state), 1.0)
             best_scale!(currentmodel_(state), 1.0)
         else # >=
             orig_scale!(currentmodel_(state), 1.5)
             best_scale!(currentmodel_(state), 0.5)
-        end=#
+        end
     end
 end
