@@ -13,16 +13,16 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 	#prefixNames = ["fn", "dim", "elitism", "ctr", "run"]
 	prefixNames = ["fn", "dim","run"]
 	firstTime = true
-	for n = [100]
-		testFn = generatetests(n, 0.0; ε = 0.0)
+	for n = [40]
+		testFn = generatetests(n, 0.0; ε = 10e-8)
 		fn_name  = [:rastrigin]
-		#fn_name = [:zakharov]
 		for name in fn_name
+			(name == :rastrigin) ? max_fe = 3 * 10000 * n : max_fe = 10000n
 			f = testFn[name]
 			r_UnitShell = rand_shell(optimum(f))
 			for includeCenter = [false], elitism = [false]
-				sys = CMAES_System(n, f; maxEvals = 100n, includeCenter = includeCenter, elitism = elitism)
-				rsys = CMAES_Restart(; η = 1.0)
+				sys = CMAES_System(n, f; maxEvals = max_fe, includeCenter = includeCenter, elitism = elitism)
+				rsys = CMAES_Restart(; η = 2.0)
 				deg = 5.0
 				for expr = 1:reps
 					#prefixValues = [name, n, elitism, includeCenter, expr]
@@ -33,8 +33,7 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 
 					if summary
 						write_final(ipop; prefixNames = prefixNames, prefixValues = prefixValues,
-						            	  initialize = firstTime, path = outputPath, fileName = "tryin_a_ting_final$exprName")
-						            	  initialize = firstTime, path = outputPath, fileName = "dualcenter_1505_final$exprName")
+						            	  initialize = firstTime, path = outputPath, fileName = "Rastrigin-40D-(3)10000n-rs1505-test$exprName")
 					end
 
 					#=if monitored
@@ -50,4 +49,4 @@ function runexpr(exprName::String; reps = 20, outputPath = "", summary = true, m
 end
 
 expr_path = "$(base_path)/Experiments/fixedbudgetruns"
-runexpr("#dual-center", reps = 10, outputPath = expr_path, monitored = true)
+runexpr("#test", reps = 5, outputPath = expr_path, monitored = true)
