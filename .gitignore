@@ -3,3 +3,4 @@ Experiments
 *.pptx
 *.docx
 *.tmp
+.DS_Store
